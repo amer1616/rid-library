@@ -3,7 +3,10 @@
 type CB = () => void;
 type EMap = HTMLElementEventMap;
 
-const t = new WeakMap<object, Map<string | symbol, Set<CB>>>();
+const t = new WeakMap<
+  object,
+  Map<string | symbol | number | undefined, Set<CB>>
+>();
 let a: CB | null = null;
 
 const reactive = <T extends object>(o: T): T =>
@@ -42,7 +45,7 @@ const effect = (fn: CB): CB => {
 };
 
 const cleanup = (e: CB) => {
-  t.forEach((deps: any) => deps.forEach((set) => set.delete(e)));
+  t.forEach((deps: any) => deps.forEach((set: any) => set.delete(e)));
 };
 
 interface TemplateResult {
