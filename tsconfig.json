@@ -10,10 +10,10 @@
     "declaration": true,
     /* Bundler mode */
     "moduleResolution": "Bundler",
-    "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
-    "noEmit": true,
+    // "allowImportingTsExtensions": true,
+    "noEmit": false,
     "outDir": "dist",
     /* Linting */
     "strict": true,

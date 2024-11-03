@@ -32,6 +32,7 @@ effect(() => {
 // function add todo
 const addTodo = (text: string) => {
   state.todos = [...state.todos, { id: Date.now(), text, completed: false }];
+  state.newTodoTxt = "";
 };
 
 const todoTmpl = () => {
@@ -42,7 +43,7 @@ const todoTmpl = () => {
       type="text"
       placeholder="Add a todo"
       value=${state.newTodoTxt}
-      oninput=${(e) => (state.newTodoTxt = e.target.value)}
+      oninput=${(e: any) => (state.newTodoTxt = e.target.value)}
       onkeydown=${(e: KeyboardEvent) => {
         if (e.key === "Enter" && state.newTodoTxt.trim() !== "") {
           addTodo(state.newTodoTxt.trim());

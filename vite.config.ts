@@ -20,6 +20,7 @@ export default defineConfig({
         passes: 3,
         drop_console: true, // Remove all console statements
         pure_funcs: ["console.log", "console.error"], // Ensure specific console functions are removed
+        drop_debugger: true,
       },
       mangle: {
         properties: {
