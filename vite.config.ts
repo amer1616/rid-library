@@ -6,7 +6,7 @@ import dts from "vite-plugin-dts";
 export default defineConfig({
   build: {
     lib: {
-      entry: "src/render.ts",
+      entry: "src/index.ts",
       name: "RID",
       fileName: (format) => `rid.${format}.js`,
     },
@@ -20,7 +20,8 @@ export default defineConfig({
     terserOptions: {
       compress: {
         passes: 3,
-        pure_funcs: ["console.log", "console.error"], // Remove console logs
+        drop_console: true, // Remove all console statements
+        pure_funcs: ["console.log", "console.error"], // Ensure specific console functions are removed
       },
       mangle: {
         properties: {

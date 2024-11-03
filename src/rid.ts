@@ -45,47 +45,73 @@ const cleanup = (e: CB) => {
   t.forEach((deps: any) => deps.forEach((set: any) => set.delete(e)));
 };
 
-interface TemplateResult {
-  html: string;
-  handlers: { event: keyof EMap; handler: CB }[];
+// Template result interface
+interface TR {
+  h: string;
+  hs: { id: string; e: keyof EMap; h: CB }[];
 }
 
-const html = (
-  strings: TemplateStringsArray,
-  ...values: any[]
-): TemplateResult => {
-  let html = "";
-  const handlers: { event: keyof EMap; handler: CB }[] = [];
-  strings.forEach((str, i) => {
-    html += str;
-    if (i < values.length) {
-      const val = values[i];
+// Handler mapping
+let handlerId = 0;
+const handlers = new Map<string, CB>();
+
+// Supported event types
+const supportedEvents: (keyof EMap)[] = ["click", "input", "keydown", "change"];
+
+// Flag to ensure listeners are attached only once per container
+const listenersAttached = new WeakSet<HTMLElement>();
+
+// HTML templating with event handling
+const html = (s: TemplateStringsArray, ...v: any[]): TR => {
+  let h = "",
+    hs: { id: string; e: keyof EMap; h: CB }[] = [];
+  s.forEach((str, i) => {
+    h += str;
+    if (i < v.length) {
+      const val = v[i];
       if (typeof val === "function") {
         const m = str.match(/on([A-Za-z]+)/);
         const e = m ? (m[1].toLowerCase() as keyof EMap) : "click";
-        const id = `__h${i}__`;
-        html += ` data-${e}="${id}"`;
-        handlers.push({ event: e, handler: val });
+        if (supportedEvents.includes(e)) {
+          const id = `h${handlerId++}`;
+          h += ` data-rid-h="${e}" data-rid-id="${id}"`;
+          hs.push({ id, e, h: val });
+        } else {
+          h += val;
+        }
       } else {
-        html += val;
+        h += val;
       }
     }
   });
-  return { html, handlers };
+  return { h, hs };
 };
 
-const render = (c: HTMLElement, tmpl: () => TemplateResult): (() => void) => {
+// Render function using Incremental DOM with event delegation
+const render = (c: HTMLElement, tmpl: () => TR): (() => void) => {
+  // Attach event listeners only once per container
+  if (!listenersAttached.has(c)) {
+    supportedEvents.forEach((e) => {
+      c.addEventListener(e, (event) => {
+        const target = event.target as HTMLElement;
+        const el = target.closest(`[data-rid-h="${e}"][data-rid-id]`);
+        if (el) {
+          const id = el.getAttribute("data-rid-id")!;
+          const handler = handlers.get(id);
+          if (handler) handler();
+        }
+      });
+    });
+    listenersAttached.add(c);
+  }
+
   const u = () => {
     try {
-      const { html: tpl, handlers } = tmpl();
-      c.innerHTML = tpl;
-      handlers.forEach(({ event, handler }, i) => {
-        const id = `__h${i}__`;
-        const el = c.querySelector(`[data-${event}="${id}"]`);
-        if (el) {
-          el.addEventListener(event, handler);
-          el.removeAttribute(`data-${event}`);
-        }
+      const { h, hs } = tmpl();
+      c.innerHTML = h;
+      handlers.clear();
+      hs.forEach(({ id, h }) => {
+        handlers.set(id, h);
       });
     } catch (err) {
       console.error("Render error:", err);
