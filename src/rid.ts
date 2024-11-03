@@ -3,10 +3,7 @@
 type CB = () => void;
 type EMap = HTMLElementEventMap;
 
-const t = new WeakMap<
-  object,
-  Map<string | symbol | number | undefined, Set<CB>>
->();
+const t = new Map<object, Map<string | symbol, Set<CB>>>();
 let a: CB | null = null;
 
 const reactive = <T extends object>(o: T): T =>
