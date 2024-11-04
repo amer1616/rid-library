@@ -7,15 +7,19 @@
     "dev:counter": "vite examples/counter",
     "dev:todo": "vite examples/todo",
     "build": "vite build",
-    "test": "vitest run",
-    "test:watch": "vitest --watch"
+    "test": "vitest --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts --watch"
   },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "devDependencies": {
+    "jsdom": "^25.0.1",
     "typescript": "~5.6.2",
     "vite": "^5.4.10",
-    "vitest": "^0.1.0"
+    "vitest": "^2.1.4"
   },
   "dependencies": {
+    "@types/jest": "^29.5.14",
     "path": "^0.12.7",
     "terser": "^5.36.0",
     "vite-plugin-dts": "^4.3.0"

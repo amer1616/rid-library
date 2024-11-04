@@ -1,12 +1,12 @@
-import { define } from "@rid";
-import { html } from "@rid";
+import { define } from "@rid/index";
+import { html } from "@rid/index";
 
 describe("<rid-counter> Component Tests", () => {
   it("should increment count when button is clicked", async () => {
     define({
       tagName: "rid-counter",
       props: { count: 0 },
-      template: (props, state) => html`
+      template: (_props: any, state: any) => html`
         <div>
           <p>Count: ${state.count}</p>
           <button onclick=${() => state.count++}>+</button>

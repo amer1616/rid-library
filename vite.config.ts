@@ -8,7 +8,14 @@ const __dirname = path.dirname(new URL(import.meta.url).pathname);
 export default defineConfig({
   resolve: {
     alias: {
-      "@rid": path.resolve(__dirname, "src"), // Alias for the library code
+      "@rid/*": path.resolve(__dirname, "src/*"), // Alias for the library code
+    },
+  },
+  test: {
+    globals: true,
+    environment: "jsdom",
+    alias: {
+      "@rid/*": "./src/*", // Explicit alias for Vitest
     },
   },
 
@@ -42,10 +49,6 @@ export default defineConfig({
   },
 
   plugins: [
-    vitest({
-      globals: true,
-      environment: "jsdom",
-    }),
     // dts({
     //   insertTypesEntry: true,
     //   cleanVueFileName: true,

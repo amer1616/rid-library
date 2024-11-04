@@ -1,5 +1,3 @@
-// src/rid.ts
-
 type CB = () => void;
 // type EMap = HTMLElementEventMap;
 
@@ -49,22 +47,6 @@ const cleanup = (e: CB) => {
   t.forEach((deps: any) => deps.forEach((set: any) => set.delete(e)));
 };
 
-// Template result interface
-// interface TR {
-//   h: string;
-//   hs: { id: string; e: keyof EMap; h: CB }[];
-// }
-
-// Handler mapping
-// let handlerId = 0;
-// const handlers = new Map<string, CB>();
-
-// // Supported event types
-// const supportedEvents: (keyof EMap)[] = ["click", "input", "keydown", "change"];
-
-// // Flag to ensure listeners are attached only once per container
-// const listenersAttached = new WeakSet<HTMLElement>();
-
 /// HTML templating with event handling and array support
 const html = (s: TemplateStringsArray, ...v: any[]) => {
   let h = "",
@@ -113,39 +95,6 @@ const render = (
   };
   return effect(u);
 };
-
-// const render = (c: HTMLElement, tmpl: () => TR): (() => void) => {
-//   // Attach event listeners only once per container
-//   if (!listenersAttached.has(c)) {
-//     supportedEvents.forEach((e) => {
-//       c.addEventListener(e, (event) => {
-//         const target = event.target as HTMLElement;
-//         const el = target.closest(`[data-rid-h="${e}"][data-rid-id]`);
-//         if (el) {
-//           const id = el.getAttribute("data-rid-id")!;
-//           const handler = handlers.get(id);
-//           if (handler) handler();
-//         }
-//       });
-//     });
-//     listenersAttached.add(c);
-//   }
-
-//   const u = () => {
-//     try {
-//       const { h, hs } = tmpl();
-//       c.innerHTML = h;
-//       handlers.clear();
-//       hs.forEach(({ id, h }) => {
-//         handlers.set(id, h);
-//       });
-//     } catch (err) {
-//       console.error("Render error:", err);
-//     }
-//   };
-//   const d = effect(u);
-//   return () => d();
-// };
 
 // define custom element for web components
 
