@@ -1,8 +1,19 @@
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
+import path from "path";
+import { vitest } from "vitest";
+
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@rid": path.resolve(__dirname, "src"), // Alias for the library code
+    },
+  },
+
   build: {
+    outDir: "dist", // Output directory for production build
     lib: {
       entry: "src/index.ts",
       name: "RID",
@@ -29,10 +40,15 @@ export default defineConfig({
       },
     },
   },
+
   plugins: [
-    dts({
-      insertTypesEntry: true,
-      cleanVueFileName: true,
+    vitest({
+      globals: true,
+      environment: "jsdom",
     }),
+    // dts({
+    //   insertTypesEntry: true,
+    //   cleanVueFileName: true,
+    // }),
   ],
 });

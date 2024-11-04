@@ -1,18 +1,22 @@
 {
-  "name": "rid-library",
+  "name": "ridjs",
   "private": true,
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "dev:counter": "vite examples/counter",
+    "dev:todo": "vite examples/todo",
+    "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest --watch"
   },
   "devDependencies": {
     "typescript": "~5.6.2",
-    "vite": "^5.4.10"
+    "vite": "^5.4.10",
+    "vitest": "^0.1.0"
   },
   "dependencies": {
+    "path": "^0.12.7",
     "terser": "^5.36.0",
     "vite-plugin-dts": "^4.3.0"
   }

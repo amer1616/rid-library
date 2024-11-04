@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@rid/*": ["src/*"]
+    },
     "target": "ES2015",
     "useDefineForClassFields": true,
     "module": "ESNext",
@@ -22,5 +26,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src", "examples", "tests"]
 }

@@ -1,9 +1,9 @@
-import { define, html } from "../../index.js";
+import { define, html } from "../../src/index.js";
 
-define({
+const counter = {
   tagName: "my-counter",
   props: { count: 0 },
-  template: (props, state) => html` <div>
+  template: (props: any, state: any) => html` <div>
     <p>Count: ${state.count}</p>
     <button onclick=${() => state.count++}>+</button>
   </div>`,
@@ -11,4 +11,5 @@ define({
     div { padding: 10px; border: 1px solid #ccc; }
     button { cursor: pointer; padding: 5px; }
   `,
-});
+};
+define(counter);
