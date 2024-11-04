@@ -1,4 +1,4 @@
-import { html, reactive, render, effect } from "../../src/index.ts";
+import { html, reactive, render, effect } from "../../index.js";
 
 // interface for Todo items
 interface Todo {
