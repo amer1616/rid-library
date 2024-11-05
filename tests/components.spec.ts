@@ -1,5 +1,6 @@
-import { define } from "@rid/index";
-import { html } from "@rid/index";
+/// <reference types="jest" />
+import { define } from "../src/index";
+import { html } from "../src/index";
 
 describe("<rid-counter> Component Tests", () => {
   it("should increment count when button is clicked", async () => {

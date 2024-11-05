@@ -1,6 +1,5 @@
-// tests/rid.spec.ts
-
-import { reactive, effect, html } from "@rid/index";
+/// <reference types="jest" />
+import { reactive, effect, html } from "../src/index.js";
 
 describe("RID Library Core Tests", () => {
   it("should create a reactive object", () => {

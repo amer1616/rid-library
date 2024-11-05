@@ -4,11 +4,11 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev:counter": "vite examples/counter",
-    "dev:todo": "vite examples/todo",
+    "dev:counter": "vite serve examples/counter/index.html",
+    "dev:todo": "vite serve examples/todo/index.html",
     "build": "vite build",
-    "test": "vitest --config vitest.config.ts",
-    "test:watch": "vitest --config vitest.config.ts --watch"
+    "test": "vitest run",
+    "test:watch": "vitest --watch"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,10 +16,11 @@
     "jsdom": "^25.0.1",
     "typescript": "~5.6.2",
     "vite": "^5.4.10",
-    "vitest": "^2.1.4"
+    "vitest": "^2.1.4",
+    "@types/jest": "^29.5.14"
   },
   "dependencies": {
-    "@types/jest": "^29.5.14",
+    "@jest/globals": "^29.7.0",
     "path": "^0.12.7",
     "terser": "^5.36.0",
     "vite-plugin-dts": "^4.3.0"

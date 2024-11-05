@@ -8,21 +8,24 @@ const __dirname = path.dirname(new URL(import.meta.url).pathname);
 export default defineConfig({
   resolve: {
     alias: {
-      "@rid/*": path.resolve(__dirname, "src/*"), // Alias for the library code
+      "@rid": path.resolve(__dirname, "src"), // Alias for the library code
+      "@rid/*": path.resolve(__dirname, "src/*"),
     },
   },
-  test: {
-    globals: true,
-    environment: "jsdom",
-    alias: {
-      "@rid/*": "./src/*", // Explicit alias for Vitest
-    },
-  },
+  // test: {
+  //   globals: true,
+  //   environment: "jsdom",
+  //   alias: {
+  //     "@rid": "./src/index",
+  //     "@rid/*": "./src/*", // Explicit alias for Vitest
+  //   },
+  // },
 
   build: {
     outDir: "dist", // Output directory for production build
     lib: {
-      entry: "src/index.ts",
+      entry: path.resolve(__dirname, "src/index.ts"),
+      formats: ["es"],
       name: "RID",
       fileName: (format) => `rid.${format}.js`,
     },
@@ -49,9 +52,9 @@ export default defineConfig({
   },
 
   plugins: [
-    // dts({
-    //   insertTypesEntry: true,
-    //   cleanVueFileName: true,
-    // }),
+    dts({
+      insertTypesEntry: true,
+      cleanVueFileName: true,
+    }),
   ],
 });

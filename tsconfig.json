@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@rid/*": ["src/*"]
+      "@rid": ["src/*"]
     },
     "target": "ES2015",
     "useDefineForClassFields": true,
@@ -27,5 +27,5 @@
     "noUncheckedSideEffectImports": true,
     "types": ["vitest/globals"]
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "examples"]
+  "include": ["src", "tests", "examples", "vitest.config.ts", "**/*.spec.ts"]
 }
