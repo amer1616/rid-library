@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 // Example: Mocking console methods to suppress logs during tests
 beforeAll(() => {
   jest.spyOn(console, "log").mockImplementation(() => {});

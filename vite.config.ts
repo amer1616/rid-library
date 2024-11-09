@@ -16,7 +16,7 @@ export default defineConfig({
   //   globals: true,
   //   environment: "jsdom",
   //   alias: {
-  //     "@rid": "./src/index",
+  //     "@rid": "./src",
   //     "@rid/*": "./src/*", // Explicit alias for Vitest
   //   },
   // },
@@ -24,10 +24,10 @@ export default defineConfig({
   build: {
     outDir: "dist", // Output directory for production build
     lib: {
-      entry: path.resolve(__dirname, "src/index.ts"),
-      formats: ["es"],
+      entry: path.resolve(__dirname, "src/main.ts"),
+      // formats: ["es"],
       name: "RID",
-      fileName: (format) => `rid.${format}.js`,
+      fileName: (format) => `@rid.${format}.js`,
     },
     rollupOptions: {
       external: [],

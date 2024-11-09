@@ -7,7 +7,7 @@ const __dirname = path.dirname(new URL(import.meta.url).pathname);
 export default defineConfig({
   resolve: {
     alias: {
-      "@rid": path.resolve(__dirname, "./src/index"),
+      "@rid": path.resolve(__dirname, "./src"),
       "@rid/*": path.resolve(__dirname, "./src/*"),
     },
   },
@@ -16,7 +16,7 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: "./tests/setup.ts",
     alias: {
-      "@rid": path.resolve(__dirname, "./src/index"),
+      "@rid": path.resolve(__dirname, "./src"),
       "@rid/*": path.resolve(__dirname, "./src/*"),
     },
   },

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@rid": ["src/*"]
+      "@rid/*": ["src/*"]
     },
     "target": "ES2015",
     "useDefineForClassFields": true,

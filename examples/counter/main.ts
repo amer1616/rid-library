@@ -1,7 +1,7 @@
-import { define, html } from "../../src/index.js";
+import { define, html } from "../../src/main.js";
 
 const counter = {
-  tagName: "my-counter",
+  tagName: "rid-counter",
   props: { count: 0 },
   template: (props: any, state: any) => html` <div>
     <p>Count: ${state.count}</p>
