@@ -1,6 +1,6 @@
 // tests/counter.spec.ts
 import { describe, it, expect } from "vitest";
-import { define, html } from "@rid/main";
+import { define } from "@rid/main";
 import { Counter } from "../src/components/rid-counter";
 
 describe("<rid-counter> Component", () => {

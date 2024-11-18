@@ -1,6 +1,6 @@
 // tests/todo.spec.ts
 import { describe, it, expect } from "vitest";
-import { define, html } from "@rid/main";
+import { define, html, reactive } from "@rid/main";
 
 interface TodoItem {
   text: string;
@@ -9,21 +9,33 @@ interface TodoItem {
 
 describe("<rid-todo> Component", () => {
   beforeEach(() => {
-    // Define the component
-    define({
-      tagName: "rid-todo",
-      props: { todos: [] as TodoItem[] },
-      template: (props, state) => html`
+    // Define MyTodo component
+    define("my-todo", (props) => {
+      const state = reactive({
+        todos: props.todos || ([] as TodoItem[]),
+      });
+
+      const addTodo = () => {
+        state.todos.push({ text: "New Task", completed: false });
+      };
+
+      return html`
         <div>
           <h3>Todo List</h3>
           <ul>
             ${state.todos.map(
-              (todo: { completed: any; text: any }, index: any) => html`
+              (
+                todo: { completed: any; text: any },
+                index: string | number
+              ) => html`
                 <li>
                   <input
                     type="checkbox"
                     checked="${todo.completed}"
-                    onchange=${() => toggleTodo(index)}
+                    onchange=${() => {
+                      state.todos[index].completed =
+                        !state.todos[index].completed;
+                    }}
                   />
                   ${todo.text}
                 </li>
@@ -32,27 +44,9 @@ describe("<rid-todo> Component", () => {
           </ul>
           <button onclick=${addTodo}>Add Todo</button>
         </div>
-      `,
-      styles: `
-        div { padding: 10px; border: 1px solid #ddd; }
-        ul { list-style: none; padding: 0; }
-        li { margin-bottom: 5px; }
-        button { cursor: pointer; padding: 5px 10px; }
-      `,
+      `;
     });
-
-    // Define helper functions globally for testing
-    (window as any).toggleTodo = (index: number) => {
-      const todoElement = document.querySelector("rid-todo") as any;
-      todoElement.todos[index].completed = !todoElement.todos[index].completed;
-    };
-
-    (window as any).addTodo = () => {
-      const todoElement = document.querySelector("rid-todo") as any;
-      todoElement.todos.push({ text: "New Task", completed: false });
-    };
   });
-
   it("renders MyTodo component with empty list", () => {
     document.body.innerHTML = `<my-todo></my-todo>`;
     const todo = document.querySelector("my-todo") as any;

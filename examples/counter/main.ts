@@ -1,15 +1,14 @@
-import { define, html } from "../../src/main.js";
+import { define, html, reactive } from "@rid/main";
 
-const counter = {
-  tagName: "rid-counter",
-  props: { count: 0 },
-  template: (props: any, state: any) => html` <div>
-    <p>Count: ${state.count}</p>
-    <button onclick=${() => state.count++}>+</button>
-  </div>`,
-  styles: `
-    div { padding: 10px; border: 1px solid #ccc; }
-    button { cursor: pointer; padding: 5px; }
-  `,
+const counter = (props: any) => {
+  const state = reactive({ count: Number(props.count) || 0 });
+
+  return html`
+    <div>
+      <p>Count: ${state.count}</p>
+      <button onclick=${() => state.count++}>Increment</button>
+    </div>
+  `;
 };
-define(counter);
+
+define("rid-counter", counter);
