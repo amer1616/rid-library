@@ -4,7 +4,8 @@ RID is a **minimalistic** and **lightweight** JavaScript library for building **
 
 ## 🚀 Features
 
-- **Functional Components**: Define components as pure functions, enhancing readability and maintainability.
+- **Zero Dependencies & build tools**
+- **Functional Web Components**: Define native web components as pure functions, enhancing readability and maintainability.
 - **Reactivity**: Built-in reactive state management ensures your UI stays in sync with your data.
 - **JSX-like Templating**: Use template literals to create dynamic and expressive UI structures.
 - **Slots Support**: Easily insert and manage child content within your components.
