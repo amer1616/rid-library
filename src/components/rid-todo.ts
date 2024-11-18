@@ -1,20 +1,27 @@
 // src/components/rid-todo.ts
-import { define, html } from "@rid/main";
+import { html, reactive } from "@rid/main";
 
 interface TodoItem {
   text: string;
   completed: boolean;
 }
 
-define({
-  tagName: "rid-todo",
-  props: { todos: [] as TodoItem[] },
-  template: (props, state) => html`
+export const MyTodo = (props: { todos: TodoItem[] }) => {
+  const state = reactive({ todos: props.todos });
+
+  const toggleTodo = (index: number) => {
+    state.todos[index].completed = !state.todos[index].completed;
+  };
+  const addTodo = () => {
+    state.todos.push({ text: "New Task", completed: false });
+  };
+
+  return html`
     <div>
       <h3>Todo List</h3>
       <ul>
         ${state.todos.map(
-          (todo: { completed: any; text: any }, index: number) => html`
+          (todo: { completed: any; text: any }, index: any) => html`
             <li>
               <input
                 type="checkbox"
@@ -28,21 +35,5 @@ define({
       </ul>
       <button onclick=${addTodo}>Add Todo</button>
     </div>
-  `,
-  styles: `
-    div { padding: 10px; border: 1px solid #ddd; }
-    ul { list-style: none; padding: 0; }
-    li { margin-bottom: 5px; }
-    button { cursor: pointer; padding: 5px 10px; }
-  `,
-});
-
-function toggleTodo(index: number) {
-  const todoElement = document.querySelector("rid-todo") as any;
-  todoElement.todos[index].completed = !todoElement.todos[index].completed;
-}
-
-function addTodo() {
-  const todoElement = document.querySelector("rid-todo") as any;
-  todoElement.todos.push({ text: "New Task", completed: false });
-}
+  `;
+};

@@ -53,21 +53,21 @@ describe("<rid-todo> Component", () => {
     };
   });
 
-  it("renders with no todos initially", () => {
-    document.body.innerHTML = `<rid-todo></rid-todo>`;
-    const todo = document.querySelector("rid-todo") as any;
+  it("renders MyTodo component with empty list", () => {
+    document.body.innerHTML = `<my-todo></my-todo>`;
+    const todo = document.querySelector("my-todo") as any;
     const listItems = todo.shadowRoot.querySelectorAll("li");
+
     expect(listItems.length).toBe(0);
   });
 
-  it("adds a new todo when button is clicked", async () => {
-    document.body.innerHTML = `<rid-todo></rid-todo>`;
-    const todo = document.querySelector("rid-todo") as any;
+  it("adds a new todo item in MyTodo component on button click", async () => {
+    document.body.innerHTML = `<my-todo></my-todo>`;
+    const todo = document.querySelector("my-todo") as any;
     const button = todo.shadowRoot.querySelector("button");
 
     button.click();
 
-    // Wait for reactivity
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     const listItems = todo.shadowRoot.querySelectorAll("li");
@@ -75,21 +75,20 @@ describe("<rid-todo> Component", () => {
     expect(listItems[0].textContent).toContain("New Task");
   });
 
-  it("toggles todo completion when checkbox is clicked", async () => {
-    document.body.innerHTML = `<rid-todo></rid-todo>`;
-    const todo = document.querySelector("rid-todo") as any;
+  it("toggles completion status of a todo item in MyTodo component", async () => {
+    document.body.innerHTML = `<my-todo></my-todo>`;
+    const todo = document.querySelector("my-todo") as any;
     const button = todo.shadowRoot.querySelector("button");
 
-    // Add a todo first
     button.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     const checkbox = todo.shadowRoot.querySelector(
       'input[type="checkbox"]'
-    ) as any;
+    ) as HTMLInputElement;
+
     expect(checkbox.checked).toBe(false);
 
-    // Toggle completion
     checkbox.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
 

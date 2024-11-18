@@ -1,19 +1,13 @@
 // src/components/rid-counter.ts
-import { define, html } from "@rid/main";
+import { html, reactive } from "@rid/main";
 
-define({
-  tagName: "rid-counter",
-  props: { count: 0 },
-  template: (props, state) => html`
+export const Counter = (props: any) => {
+  const state = reactive({ count: Number(props.count) || 0 });
+
+  return html`
     <div>
       <p>Count: ${state.count}</p>
-      <button onclick=${() => state.count++}>+</button>
-      <slot></slot>
-      <!-- Optional: For additional content -->
+      <button onclick=${() => state.count++}>Increment</button>
     </div>
-  `,
-  styles: `
-    div { padding: 10px; border: 1px solid #ccc; }
-    button { cursor: pointer; padding: 5px 10px; }
-  `,
-});
+  `;
+};

@@ -1,51 +1,54 @@
-type CB = () => void;
-// type EMap = HTMLElementEventMap;
-
 // Reactive system using Proxy
 
-const t = new Map<object, Map<string | symbol, Set<CB>>>();
-let a: CB | null = null;
+type CB = () => void;
+const depsMap = new Map<object, Map<string | symbol, Set<CB>>>();
+let activeEffect: CB | null = null;
 
-const reactive = <T extends object>(o: T): T =>
-  new Proxy(o, {
-    get(target, key, r) {
-      const res = Reflect.get(target, key, r);
-      if (a) {
-        let deps = t.get(target) || new Map();
+const reactive = <T extends object>(obj: T): T =>
+  new Proxy(obj, {
+    get(target, key, receiver) {
+      const res = Reflect.get(target, key, receiver);
+      if (activeEffect) {
+        let deps = depsMap.get(target) || new Map();
         if (!deps.has(key)) deps.set(key, new Set());
-        deps.get(key)!.add(a);
-        t.set(target, deps);
+        deps.get(key)!.add(activeEffect);
+        depsMap.set(target, deps);
       }
       return typeof res === "object" && res !== null ? reactive(res) : res;
     },
-    set(target, key, v, r) {
-      const o = (target as any)[key];
-      const res = Reflect.set(target, key, v, r);
-      if (o !== v) {
-        t.get(target)
-          ?.get(key)
-          ?.forEach((cb) => cb());
+    set(target, key, value, receiver) {
+      const old = Reflect.get(target, key, receiver);
+      const res = Reflect.set(target, key, value, receiver);
+      if (old !== value) {
+        const deps = depsMap.get(target)?.get(key);
+        deps?.forEach((cb) => cb());
       }
       return res;
     },
   });
 
 // Effect registration
-const effect = (fn: CB): CB => {
-  const e = () => {
-    cleanup(e);
-    a = e;
+const effect = (fn: CB) => {
+  const wrapped: CB = () => {
+    cleanup(wrapped);
+    activeEffect = wrapped;
     fn();
-    a = null;
+    activeEffect = null;
   };
-  e();
-  return e;
+  wrapped();
 };
 
 // Cleanup dependencies
-const cleanup = (e: CB) => {
-  t.forEach((deps: any) => deps.forEach((set: any) => set.delete(e)));
+const cleanup = (effectFn: CB) => {
+  depsMap.forEach((deps) => {
+    deps.forEach((set) => set.delete(effectFn));
+  });
 };
+
+export interface TemplateResult {
+  h: string;
+  hs: { id: string; e: keyof HTMLElementEventMap; h: CB }[];
+}
 
 /// HTML templating with event handling and array support
 const html = (s: TemplateStringsArray, ...v: any[]) => {
@@ -75,27 +78,46 @@ const html = (s: TemplateStringsArray, ...v: any[]) => {
   });
   return { h, hs };
 };
+
+const handlers = new Map<string, CB>();
+
 // Render function using Incremental DOM with event delegation
 const render = (
-  c: HTMLElement,
-  tmpl: () => { h: string; hs: any[] }
+  el: ShadowRoot | HTMLElement,
+  template: () => TemplateResult
 ): (() => void) => {
-  if (typeof window === "undefined") return () => {};
-  let u = () => {
+  if (typeof window === "undefined") return () => {}; // Server-side: Do nothing
+
+  effect(() => {
     try {
-      const { h, hs } = tmpl();
-      c.innerHTML = h;
-      hs.forEach(({ id, e, h }) => {
-        const el = c.querySelector(`[data-rid-id="${id}"]`);
-        if (el) el.addEventListener(e, h);
-      });
+      const { h, hs } = template();
+      el.innerHTML = h;
+      handlers.clear();
+      hs.forEach(({ id, h }) => handlers.set(id, h));
     } catch (err) {
       console.error("Render error:", err);
     }
-  };
-  return effect(u);
-};
+  });
 
-// define custom element for web components
+  const listener = (event: Event) => {
+    const target = event.target as HTMLElement;
+    const el = target.closest(`[data-rid-h][data-rid-id]`);
+    if (el) {
+      // const eventName = el.getAttribute(
+      //   "data-rid-h"
+      // ) as keyof HTMLElementEventMap;
+      const handlerId = el.getAttribute("data-rid-id")!;
+      const handler = handlers.get(handlerId);
+      handler?.();
+    }
+  };
+
+  el.addEventListener("click", listener);
+  // Add other event listeners as needed (e.g., 'input', 'change')
+
+  return () => {
+    el.removeEventListener("click", listener);
+  };
+};
 
 export { reactive, effect, html, render };
