@@ -1,14 +1,35 @@
-import { define, html, reactive } from "@rid/main";
+import { r as reactive, h as html, define } from "../../src/core";
 
-const counter = (props: any) => {
-  const state = reactive({ count: Number(props.count) || 0 });
+interface CounterState {
+  count: number;
+}
+
+const Counter = () => {
+  const state = reactive<CounterState>({
+    count: 0,
+  });
 
   return html`
-    <div>
-      <p>Count: ${state.count}</p>
+    <div class="counter">
+      <h2>Counter: ${state.count}</h2>
       <button onclick=${() => state.count++}>Increment</button>
+      <button onclick=${() => state.count--}>Decrement</button>
     </div>
+
+    <style>
+      .counter {
+        padding: 20px;
+        text-align: center;
+      }
+
+      button {
+        margin: 0 5px;
+        padding: 8px 16px;
+        font-size: 16px;
+      }
+    </style>
   `;
 };
 
-define("rid-counter", counter);
+// Register component
+define("rid-counter", Counter);

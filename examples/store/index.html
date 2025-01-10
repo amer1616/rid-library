@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RIDJS - Store Example</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        background: #f5f5f5;
+        font-family: system-ui, -apple-system, sans-serif;
+        color: #333;
+      }
+
+      /* Debug panel */
+      .debug-panel {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 20px;
+        background: #1e1e1e;
+        color: #fff;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 14px;
+        width: 300px;
+        max-height: 400px;
+        overflow-y: auto;
+        transform: translateX(320px);
+        transition: transform 0.3s ease;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      }
+
+      .debug-panel.show {
+        transform: translateX(0);
+      }
+
+      .debug-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 8px 16px;
+        background: #333;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        z-index: 1000;
+      }
+
+      .debug-panel pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+
+      .debug-panel .state {
+        color: #4caf50;
+      }
+
+      .debug-panel .computed {
+        color: #2196f3;
+      }
+
+      .debug-panel .action {
+        color: #ff5722;
+      }
+
+      /* Back button */
+      .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 8px 16px;
+        background: #333;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        font-size: 14px;
+      }
+
+      .back-button:hover {
+        background: #444;
+      }
+
+      .back-button::before {
+        content: "←";
+        font-size: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Back to examples -->
+    <a href="/" class="back-button">Back to Examples</a>
+
+    <!-- Store demo component -->
+    <store-todo></store-todo>
+
+    <!-- Debug panel -->
+    <button class="debug-toggle" type="button">Show Store Debug</button>
+    <div id="debug" class="debug-panel">
+      <h3>Store Debug</h3>
+      <div id="state"></div>
+      <div id="computed"></div>
+      <div id="actions"></div>
+    </div>
+
+    <!-- Import main script -->
+    <script type="module" src="./main.ts"></script>
+
+    <!-- Debug panel initialization -->
+    <script type="module">
+      import { todoStore } from "./main";
+
+      // Update debug panel
+      function updateDebug() {
+        // Update state
+        document.getElementById("state").innerHTML = `
+        <h4>State:</h4>
+        <pre class="state">${JSON.stringify(todoStore.state, null, 2)}</pre>
+      `;
+
+        // Update computed values
+        document.getElementById("computed").innerHTML = `
+        <h4>Computed Values:</h4>
+        <pre class="computed">
+Stats:
+${JSON.stringify(todoStore.get("stats"), null, 2)}
+
+Filtered Items: ${todoStore.get("filteredItems").length} items
+</pre>
+      `;
+
+        // Update last action
+        const actionDiv = document.getElementById("actions");
+        const action = window.lastAction;
+        if (action) {
+          actionDiv.innerHTML = `
+          <h4>Last Action:</h4>
+          <pre class="action">${action.name}(${
+            action.args.length ? JSON.stringify(action.args) : ""
+          })</pre>
+        `;
+        }
+      }
+
+      // Track actions
+      const originalDispatch = todoStore.dispatch;
+      todoStore.dispatch = (name, ...args) => {
+        window.lastAction = { name, args };
+        originalDispatch.call(todoStore, name, ...args);
+        updateDebug();
+      };
+
+      // Initial update
+      updateDebug();
+
+      // Update on state changes
+      setInterval(updateDebug, 1000);
+
+      // Toggle debug panel
+      const toggleButton = document.querySelector(".debug-toggle");
+      const debugPanel = document.getElementById("debug");
+
+      toggleButton.addEventListener("click", () => {
+        debugPanel.classList.toggle("show");
+        toggleButton.textContent = debugPanel.classList.contains("show")
+          ? "Hide Store Debug"
+          : "Show Store Debug";
+      });
+    </script>
+  </body>
+</html>

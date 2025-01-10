@@ -1,7 +1,5 @@
-// Re-export core functionality
-export { reactive, effect } from "./core/reactive";
-export { html } from "./core/template";
-export { define } from "./core/component";
+// Re-export core functionality with optimized names
+export { r as reactive, f as effect, h as html, define } from "./core";
 
 // Export types
 export type {
@@ -9,10 +7,9 @@ export type {
   PropTypes,
   ComponentOptions,
   PropTypeToTSType,
-} from "./core/component";
-
-export type {
   TemplateResult,
-  SupportedEvent,
-  EventHandler,
-} from "./core/template";
+} from "./core";
+
+// Server-side rendering (tree-shakeable)
+export { renderToString, renderToStream } from "./server";
+export type { SSRContext } from "./server";

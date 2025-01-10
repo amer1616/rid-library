@@ -1,21 +1,100 @@
 import { reactive, effect } from "./reactive";
 
-/**
- * Create a derived state that updates automatically
- */
-export function computed<T>(fn: () => T) {
-  let value: T;
-  effect(() => {
-    value = fn();
-  });
-  return () => value;
+// Store types
+export interface StoreInstance<T extends object> {
+  state: T;
+  compute: <R>(name: string, fn: (state: T) => R) => StoreInstance<T>;
+  addAction: <A extends (...args: any[]) => void>(
+    name: string,
+    fn: (state: T, ...args: Parameters<A>) => void
+  ) => StoreInstance<T>;
+  get: <R>(name: string) => R;
+  dispatch: (name: string, ...args: any[]) => void;
 }
 
-/**
- * Create an action to update state with transactions
- */
+// Internal types
+type ComputedCache = Map<string, any>;
+type ComputedFn<T, R> = (state: T) => R;
+type ActionFn<T> = (state: T, ...args: any[]) => void;
+
+// Create a store with state management
+export function createStore<T extends object>(
+  initialState: T
+): StoreInstance<T> {
+  const state = reactive(initialState);
+  const computedValues = new Map<string, ComputedFn<T, any>>();
+  const computedCache: ComputedCache = new Map();
+  const actions = new Map<string, ActionFn<T>>();
+
+  // Clear cache when state changes
+  effect(() => {
+    JSON.stringify(state); // Track all state changes
+    computedCache.clear();
+  });
+
+  return {
+    get state() {
+      return state;
+    },
+
+    compute<R>(name: string, fn: ComputedFn<T, R>): StoreInstance<T> {
+      computedValues.set(name, fn);
+      return this;
+    },
+
+    addAction<A extends (...args: any[]) => void>(
+      name: string,
+      fn: (state: T, ...args: Parameters<A>) => void
+    ): StoreInstance<T> {
+      actions.set(name, fn);
+      return this;
+    },
+
+    get<R>(name: string): R {
+      if (!computedValues.has(name)) {
+        throw new Error(`No computed value named "${name}"`);
+      }
+
+      if (!computedCache.has(name)) {
+        const fn = computedValues.get(name)!;
+        computedCache.set(name, fn(state));
+      }
+
+      return computedCache.get(name);
+    },
+
+    dispatch(name: string, ...args: any[]): void {
+      const action = actions.get(name);
+      if (!action) {
+        throw new Error(`No action named "${name}"`);
+      }
+      action(state, ...args);
+    },
+  };
+}
+
+// Create a computed value
+export function computed<T>(fn: () => T): () => T {
+  let value: T;
+  let dirty = true;
+
+  effect(() => {
+    dirty = true;
+    value = fn();
+  });
+
+  return () => {
+    if (dirty) {
+      dirty = false;
+      value = fn();
+    }
+    return value;
+  };
+}
+
+// Create an action that batches updates
 export function action<T extends (...args: any[]) => void>(fn: T): T {
-  return ((...args: any[]) => {
+  return ((...args: Parameters<T>) => {
     try {
       startBatch();
       return fn(...args);
@@ -25,10 +104,8 @@ export function action<T extends (...args: any[]) => void>(fn: T): T {
   }) as T;
 }
 
-/**
- * Create a selector for efficient state selection
- */
-export function select<T, R>(state: T, selector: (state: T) => R) {
+// Create a selector for efficient state selection
+export function select<T, R>(state: T, selector: (state: T) => R): () => R {
   let currentValue: R;
   let lastState: T | undefined;
 
@@ -41,7 +118,7 @@ export function select<T, R>(state: T, selector: (state: T) => R) {
   };
 }
 
-// Batching system for grouped updates
+// Batching system
 let batchDepth = 0;
 const pendingEffects = new Set<() => void>();
 
@@ -56,90 +133,5 @@ function endBatch() {
   }
 }
 
-/**
- * Create a store with actions and computed values
- */
-export function createStore<T extends object>(initialState: T) {
-  const state = reactive(initialState);
-  const computedValues = new Map<string, () => any>();
-  const actions = new Map<string, Function>();
-
-  return {
-    // Get current state
-    get state() {
-      return state;
-    },
-
-    // Add computed value
-    compute<R>(name: string, fn: (state: T) => R) {
-      computedValues.set(
-        name,
-        computed(() => fn(state))
-      );
-      return this;
-    },
-
-    // Add action
-    addAction<A extends (...args: any[]) => void>(
-      name: string,
-      fn: (state: T, ...args: Parameters<A>) => void
-    ) {
-      actions.set(
-        name,
-        action((...args: Parameters<A>) => fn(state, ...args))
-      );
-      return this;
-    },
-
-    // Get computed value
-    get<R>(name: string): R {
-      const getter = computedValues.get(name);
-      if (!getter) throw new Error(`No computed value named "${name}"`);
-      return getter();
-    },
-
-    // Dispatch action
-    dispatch(name: string, ...args: any[]) {
-      const actionFn = actions.get(name);
-      if (!actionFn) throw new Error(`No action named "${name}"`);
-      actionFn(...args);
-    },
-  };
-}
-
-// Example usage:
-/*
-const todoStore = createStore({
-  items: [],
-  filter: 'all'
-})
-.compute('filtered', state => 
-  state.items.filter(item => 
-    state.filter === 'all' || item.completed === (state.filter === 'completed')
-  )
-)
-.addAction('add', (state, text: string) => {
-  state.items.push({ id: Date.now(), text, completed: false });
-})
-.addAction('toggle', (state, id: number) => {
-  const item = state.items.find(i => i.id === id);
-  if (item) item.completed = !item.completed;
-});
-
-// Use in component
-const TodoList = () => {
-  effect(() => {
-    console.log('Filtered items:', todoStore.get('filtered'));
-  });
-
-  return html`
-    <ul>
-      ${todoStore.state.items.map(item => html`
-        <li onclick=${() => todoStore.dispatch('toggle', item.id)}>
-          ${item.text}
-        </li>
-      `)}
-    </ul>
-  `;
-};
-*/
+// Export types
+export type { ComputedFn, ActionFn };

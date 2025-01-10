@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RID - Slot Example</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        background: #f5f5f5;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+      }
+
+      .custom-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .custom-header img {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+      }
+
+      .custom-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .custom-actions button {
+        background: #28a745;
+      }
+
+      .custom-actions button.danger {
+        background: #dc3545;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Default Card -->
+      <rid-card title="Default Card">
+        <p>This card uses default slots with title prop.</p>
+      </rid-card>
+
+      <!-- Custom Header Card -->
+      <rid-card theme="dark">
+        <div slot="header" class="custom-header">
+          <img src="https://github.com/github.png" alt="Avatar" />
+          <h2>Custom Header</h2>
+        </div>
+        <p>This card has a custom header with an avatar.</p>
+      </rid-card>
+
+      <!-- Custom Actions Card -->
+      <rid-card title="Custom Actions">
+        <p>This card has custom action buttons.</p>
+        <div slot="actions" class="custom-actions">
+          <button onclick="alert('Saved!')">Save</button>
+          <button class="danger" onclick="alert('Deleted!')">Delete</button>
+        </div>
+      </rid-card>
+
+      <!-- Full Custom Card -->
+      <rid-card>
+        <div slot="header" class="custom-header">
+          <img src="https://github.com/octocat.png" alt="Avatar" />
+          <h2>Full Custom</h2>
+        </div>
+        <p>This card customizes all available slots.</p>
+        <div slot="actions" class="custom-actions">
+          <button onclick="alert('Liked!')">Like</button>
+        </div>
+        <div slot="footer">
+          <small>Created by RID</small>
+        </div>
+      </rid-card>
+    </div>
+
+    <script type="module">
+      import "./card.ts";
+    </script>
+  </body>
+</html>

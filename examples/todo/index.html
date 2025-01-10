@@ -2,14 +2,119 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RID Todo App</title>
-    <link rel="stylesheet" href="styles.css" />
+    <title>RID - Todo Example</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        background: #f5f5f5;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+
+      .custom-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .custom-header img {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+      }
+
+      .custom-empty {
+        text-align: center;
+        padding: 40px 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        color: #6c757d;
+      }
+
+      .custom-empty svg {
+        width: 48px;
+        height: 48px;
+        margin-bottom: 10px;
+        color: #adb5bd;
+      }
+
+      .stats {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        background: #e9ecef;
+        border-radius: 4px;
+        margin-top: 20px;
+        color: #495057;
+      }
+    </style>
   </head>
   <body>
-    <div id="app"></div>
-    <script src="dist/rid.umd.js"></script>
-    <script type="module" src="main.ts"></script>
+    <!-- Basic Todo List -->
+    <rid-todo title="Basic Todo"></rid-todo>
+
+    <!-- Todo with Custom Header -->
+    <rid-todo>
+      <div slot="header" class="custom-header">
+        <img src="https://github.com/github.png" alt="User" />
+        <div>
+          <h2>John's Tasks</h2>
+          <small>Keep track of your daily tasks</small>
+        </div>
+      </div>
+    </rid-todo>
+
+    <!-- Todo with Custom Empty State -->
+    <rid-todo>
+      <div slot="header">
+        <h2>Project Tasks</h2>
+      </div>
+      <div slot="empty" class="custom-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+          />
+        </svg>
+        <p>No tasks yet. Click the add button to create your first task!</p>
+      </div>
+    </rid-todo>
+
+    <!-- Todo with Stats Footer -->
+    <rid-todo>
+      <div slot="header">
+        <h2>Team Tasks</h2>
+      </div>
+      <div slot="footer" class="stats">
+        <span>Total Tasks: <strong id="totalCount">0</strong></span>
+        <span>Completed: <strong id="completedCount">0</strong></span>
+        <span>Remaining: <strong id="remainingCount">0</strong></span>
+      </div>
+    </rid-todo>
+
+    <script type="module">
+      import "./main.ts";
+
+      // Update stats every second
+      setInterval(() => {
+        const todo = document.querySelector("rid-todo:last-child");
+        if (todo) {
+          // @ts-ignore - Access internal state for demo
+          const items =
+            todo.shadowRoot.querySelector(".todo-app").__rid_state.items;
+          document.getElementById("totalCount").textContent = items.length;
+          document.getElementById("completedCount").textContent = items.filter(
+            (i) => i.completed
+          ).length;
+          document.getElementById("remainingCount").textContent = items.filter(
+            (i) => !i.completed
+          ).length;
+        }
+      }, 1000);
+    </script>
   </body>
 </html>

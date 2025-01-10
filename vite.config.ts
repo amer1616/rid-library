@@ -1,8 +1,12 @@
 import { defineConfig } from "vite";
-import dts from "vite-plugin-dts";
 import { resolve } from "path";
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@rid": resolve(__dirname, "src/core"),
+    },
+  },
   build: {
     lib: {
       entry: resolve(__dirname, "src/core/index.ts"),
@@ -43,6 +47,7 @@ export default defineConfig({
     },
     target: "esnext",
     rollupOptions: {
+      external: [],
       output: {
         exports: "named",
         compact: true,
@@ -60,20 +65,7 @@ export default defineConfig({
       },
     },
   },
-  plugins: [
-    dts({
-      insertTypesEntry: true,
-      include: ["src/core/**/*.ts"],
-      exclude: ["**/*.spec.ts", "**/*.test.ts"],
-      compilerOptions: {
-        removeComments: true,
-      },
-    }),
-  ],
-  esbuild: {
-    target: "esnext",
-    minify: true,
-    keepNames: false,
-    treeShaking: true,
+  optimizeDeps: {
+    include: [],
   },
 });
