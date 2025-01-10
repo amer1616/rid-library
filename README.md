@@ -1,193 +1,190 @@
 # RID - Reactive Interactive DOM
 
-[Previous content remains the same until adding new section...]
+A lightweight (~2KB) and efficient library for building reactive web components.
+
+## 🚀 Features
+
+- **Ultra Lightweight**: Only ~2KB minified and gzipped
+- **Zero Dependencies**: Built on web standards
+- **Web Components**: Native browser features
+- **Reactive State**: Fine-grained reactivity
+- **Keyed Iterations**: Efficient list updates
+- **SSR Support**: Server-side rendering with hydration
+- **Type-Safe**: Built with TypeScript
+
+## 📦 Installation
+
+```bash
+npm install ridjs
+```
+
+## 🎯 Quick Start
+
+```typescript
+import { r as reactive, f as effect, h as html } from "ridjs";
+
+// Create reactive state
+const state = reactive({
+  count: 0,
+  items: [],
+});
+
+// Component with effects
+const Counter = () => {
+  effect(() => {
+    console.log("Count changed:", state.count);
+  });
+
+  return html`
+    <div>
+      <p>Count: ${state.count}</p>
+      <button onclick=${() => state.count++}>Increment</button>
+    </div>
+  `;
+};
+```
+
+## ⚡ Effect System
+
+RID uses a simple yet powerful effect system:
+
+```typescript
+// Reactive state
+const state = reactive({
+  count: 0,
+  items: [],
+});
+
+// Effect automatically tracks dependencies
+effect(() => {
+  console.log("Count changed:", state.count);
+  // Optional cleanup
+  return () => {
+    console.log("Cleanup");
+  };
+});
+```
 
 ## 🔄 Atomic State Management
 
-RID provides powerful atomic state management features:
-
-### Computed Values
-
 ```typescript
-import { computed } from "ridjs";
-
-const state = reactive({
-  items: [],
-  filter: "all",
-});
-
-// Computed value updates automatically
-const filteredItems = computed(() =>
-  state.items.filter(
-    (item) =>
-      state.filter === "all" ||
-      item.completed === (state.filter === "completed")
-  )
+// Computed values
+const completedCount = computed(() =>
+  state.items.filter(item => item.completed).length
 );
 
-// Use in component
-const TodoList = () => html`
-  <ul>
-    ${filteredItems().map((item) => html` <li>${item.text}</li> `)}
-  </ul>
-`;
-```
-
-### Actions
-
-```typescript
-import { action } from "ridjs";
-
-// Batch multiple state updates
+// Batched actions
 const addTodo = action((text: string) => {
-  state.items.push({ id: Date.now(), text, completed: false });
-  state.lastUpdated = new Date();
-  state.count++;
+  state.items.push({ text, completed: false });
+  state.count++;  // Batched with previous update
 });
 
-// All updates happen in one batch
-addTodo("New task");
-```
-
-### Selectors
-
-```typescript
-import { select } from "ridjs";
-
-// Efficient state selection
-const getCompletedCount = select(
-  state,
-  (s) => s.items.filter((item) => item.completed).length
+// Efficient selectors
+const getActive = select(state, s =>
+  s.items.filter(item => !item.completed)
 );
 
-effect(() => {
-  // Only updates when completed count changes
-  console.log("Completed:", getCompletedCount());
-});
+// Organized stores
+const store = createStore({
+  items: [],
+  filter: 'all'
+})
+.compute('filtered', state => /*...*/)
+.addAction('add', (state, text) => /*...*/);
 ```
 
-### Store Pattern
+## 🖥️ Server-Side Rendering
 
 ```typescript
-import { createStore } from "ridjs";
+import { renderToString } from "ridjs/server";
 
-// Create a store with actions and computed values
-const todoStore = createStore({
-  items: [],
-  filter: "all",
-})
-  .compute("filtered", (state) =>
-    state.items.filter(
-      (item) =>
-        state.filter === "all" ||
-        item.completed === (state.filter === "completed")
-    )
-  )
-  .addAction("add", (state, text: string) => {
-    state.items.push({
-      id: Date.now(),
-      text,
-      completed: false,
-    });
-  })
-  .addAction("toggle", (state, id: number) => {
-    const item = state.items.find((i) => i.id === id);
-    if (item) item.completed = !item.completed;
-  });
+// Render to string
+const html = await renderToString(html`<my-counter count="5"></my-counter>`);
 
-// Use in components
-const TodoApp = () => html`
-  <div>
-    <input onchange=${(e) => todoStore.dispatch("add", e.target.value)} />
-    <ul>
-      ${todoStore
-        .get("filtered")
-        .map(
-          (item) => html`
-            <li onclick=${() => todoStore.dispatch("toggle", item.id)}>
-              ${item.text}
-            </li>
-          `
-        )}
-    </ul>
+// Stream rendering
+for await (const chunk of renderToStream(template)) {
+  response.write(chunk);
+}
+```
+
+## 🎨 Styling
+
+Components use Shadow DOM for style encapsulation:
+
+```typescript
+const StyledComponent = () => html`
+  <style>
+    :host {
+      display: block;
+      margin: 1em;
+    }
+    .container {
+      padding: 1em;
+    }
+  </style>
+  <div class="container">
+    <slot></slot>
   </div>
 `;
 ```
 
-### Benefits of Atomic State
+## 📦 Optimized Bundle
 
-1. **Granular Updates**
+The library is highly optimized:
 
-- Only affected components update
+- Core bundle ~2KB gzipped
+- Tree-shaking friendly
+- No runtime overhead
+- Efficient memory usage
+
+```typescript
+// Import optimized exports
+import {
+  r as reactive, // Reactive state
+  f as effect, // Effects
+  h as html, // Templates
+} from "ridjs";
+
+// Create components
+const App = () => html`
+  <div>${state.items.map((item) => html` <div>${item.text}</div> `)}</div>
+`;
+```
+
+## 🔍 Performance
+
+- No virtual DOM overhead
+- Direct DOM updates
 - Automatic dependency tracking
-- Efficient batching of changes
-
-2. **Type Safety**
-
-```typescript
-interface TodoState {
-  items: TodoItem[];
-  filter: "all" | "active" | "completed";
-}
-
-const store = createStore<TodoState>({
-  items: [],
-  filter: "all",
-});
-```
-
-3. **Developer Experience**
-
-- Clear data flow
-- Easy debugging
-- Predictable updates
-- Automatic batching
-
-4. **Performance**
-
-- Minimal re-renders
-- Efficient computations
-- Memory optimization
+- Efficient cleanup
+- Minimal memory usage
 - Batched updates
+- Keyed iterations
 
-### Best Practices
+## 📁 Project Structure
 
-1. **State Organization**
-
-```typescript
-// Group related state
-const store = createStore({
-  todos: {
-    items: [],
-    filter: "all",
-    search: "",
-  },
-  ui: {
-    theme: "light",
-    sidebar: false,
-  },
-});
+```
+src/
+  └── core/
+      └── index.ts  # Single optimized bundle
 ```
 
-2. **Computed Dependencies**
+## 🛠️ Development
 
-```typescript
-store.compute("filteredAndSearched", (state) => {
-  const filtered = state.todos.items.filter(/* ... */);
-  return filtered.filter((item) => item.text.includes(state.todos.search));
-});
+```bash
+# Install
+npm install
+
+# Development
+npm run dev
+
+# Build
+npm run build
+
+# Test
+npm test
 ```
 
-3. **Action Composition**
+## 📄 License
 
-```typescript
-store
-  .addAction("addTodo", (state, text) => {
-    state.todos.items.push(/* ... */);
-  })
-  .addAction("clearCompleted", (state) => {
-    state.todos.items = state.todos.items.filter((item) => !item.completed);
-  });
-```
-
-[Rest of README remains the same...]
+MIT
