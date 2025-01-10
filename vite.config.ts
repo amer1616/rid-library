@@ -12,21 +12,13 @@ export default defineConfig({
       "@rid/*": path.resolve(__dirname, "src/*"),
     },
   },
-  // test: {
-  //   globals: true,
-  //   environment: "jsdom",
-  //   alias: {
-  //     "@rid": "./src",
-  //     "@rid/*": "./src/*", // Explicit alias for Vitest
-  //   },
-  // },
 
   build: {
     outDir: "dist", // Output directory for production build
     lib: {
       entry: path.resolve(__dirname, "src/main.ts"),
       // formats: ["es"],
-      name: "RID",
+      name: "ridjs",
       fileName: (format) => `@rid.${format}.js`,
     },
     rollupOptions: {

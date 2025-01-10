@@ -1,7 +1,7 @@
 {
   "name": "ridjs",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "scripts": {
     "dev:counter": "vite serve examples/counter/index.html",
@@ -13,7 +13,6 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "devDependencies": {
-    "jsdom": "^25.0.1",
     "typescript": "~5.6.2",
     "vite": "^5.4.10",
     "vitest": "^2.1.4",
