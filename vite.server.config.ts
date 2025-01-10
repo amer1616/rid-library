@@ -5,10 +5,10 @@ import { resolve } from "path";
 export default defineConfig({
   build: {
     lib: {
-      entry: resolve(__dirname, "src/index.ts"),
-      name: "RID",
-      fileName: (format) => `rid.${format}.js`,
-      formats: ["es", "umd"],
+      entry: resolve(__dirname, "src/server/index.ts"),
+      name: "RIDServer",
+      fileName: (format) => `server.${format === "es" ? "js" : "cjs"}`,
+      formats: ["es", "cjs"],
     },
     minify: "terser",
     terserOptions: {
@@ -17,13 +17,9 @@ export default defineConfig({
         pure_funcs: ["console.log", "console.info"],
         drop_debugger: true,
       },
-      mangle: {
-        properties: {
-          regex: /^_/,
-        },
-      },
     },
     rollupOptions: {
+      external: ["node:stream", "node:util"],
       output: {
         exports: "named",
       },
@@ -32,17 +28,10 @@ export default defineConfig({
   plugins: [
     dts({
       insertTypesEntry: true,
-      include: ["src/**/*.ts"],
+      include: ["src/server/**/*.ts"],
       exclude: ["src/**/*.spec.ts", "src/**/*.test.ts"],
+      outDir: "dist",
+      entryRoot: "src/server",
     }),
   ],
-  resolve: {
-    alias: {
-      "@rid": resolve(__dirname, "./src"),
-    },
-  },
-  server: {
-    port: 3000,
-    open: true,
-  },
 });

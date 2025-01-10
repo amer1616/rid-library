@@ -1,27 +1,72 @@
 {
   "name": "ridjs",
-  "private": true,
-  "version": "0.0.2",
+  "version": "0.1.0",
+  "description": "Lightweight reactive web components library",
   "type": "module",
-  "scripts": {
-    "dev:counter": "vite serve examples/counter/index.html",
-    "dev:todo": "vite serve examples/todo/index.html",
-    "build": "vite build",
-    "test": "vitest run",
-    "test:watch": "vitest --watch"
-  },
-  "main": "dist/index.js",
+  "main": "dist/rid.umd.js",
+  "module": "dist/rid.es.js",
   "types": "dist/index.d.ts",
-  "devDependencies": {
-    "typescript": "~5.6.2",
-    "vite": "^5.4.10",
-    "vitest": "^2.1.4",
-    "@types/jest": "^29.5.14"
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/rid.es.js",
+      "require": "./dist/rid.umd.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./server": {
+      "import": "./dist/server.js",
+      "require": "./dist/server.cjs",
+      "types": "./dist/server.d.ts"
+    }
   },
-  "dependencies": {
-    "@jest/globals": "^29.7.0",
-    "path": "^0.12.7",
-    "terser": "^5.36.0",
-    "vite-plugin-dts": "^4.3.0"
+  "scripts": {
+    "dev:counter": "vite serve examples/counter",
+    "dev:todo": "vite serve examples/todo",
+    "dev:form": "vite serve examples/form",
+    "build": "vite build",
+    "build:types": "tsc --emitDeclarationOnly",
+    "build:server": "vite build --config vite.server.config.ts",
+    "build:all": "npm run build && npm run build:types && npm run build:server",
+    "test": "vitest run",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest run --coverage",
+    "size": "size-limit",
+    "analyze": "size-limit --why"
+  },
+  "size-limit": [
+    {
+      "path": "dist/rid.es.js",
+      "limit": "3 KB"
+    },
+    {
+      "path": "dist/server.js",
+      "limit": "2 KB"
+    }
+  ],
+  "keywords": [
+    "web-components",
+    "reactive",
+    "ui",
+    "frontend",
+    "typescript",
+    "ssr"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@size-limit/preset-small-lib": "^11.0.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.10.5",
+    "size-limit": "^11.0.0",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.0",
+    "vite-plugin-dts": "^4.3.0",
+    "vitest": "^2.1.4"
+  },
+  "peerDependencies": {
+    "node": ">=18.0.0"
   }
 }

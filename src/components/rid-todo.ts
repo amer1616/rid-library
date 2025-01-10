@@ -1,39 +1,170 @@
-// src/components/rid-todo.ts
-import { html, reactive } from "@rid/main";
+import { html, reactive, key } from "../rid";
 
 interface TodoItem {
+  id: string;
   text: string;
   completed: boolean;
 }
 
-export const MyTodo = (props: { todos: TodoItem[] }) => {
-  const state = reactive({ todos: props.todos });
+interface TodoProps {
+  items?: TodoItem[];
+  title?: string;
+}
 
-  const toggleTodo = (index: number) => {
-    state.todos[index].completed = !state.todos[index].completed;
+let nextId = 1;
+
+export const Todo = (
+  props: Partial<TodoProps>,
+  slots: Record<string, HTMLElement[]>
+) => {
+  const state = reactive({
+    todos:
+      props.items?.map((item) => ({
+        ...item,
+        id: item.id || String(nextId++),
+      })) ?? todoProps.items.default,
+  });
+
+  const toggleTodo = (id: string) => {
+    const todo = state.todos.find((t) => t.id === id);
+    if (todo) {
+      todo.completed = !todo.completed;
+    }
   };
+
   const addTodo = () => {
-    state.todos.push({ text: "New Task", completed: false });
+    state.todos.push({
+      id: String(nextId++),
+      text: "New Task",
+      completed: false,
+    });
   };
+
+  const renderTodoItem = (todo: TodoItem) =>
+    key(
+      todo.id,
+      html`
+        <li class="todo-item ${todo.completed ? "completed" : ""}">
+          <input
+            type="checkbox"
+            ?checked=${todo.completed}
+            onchange=${() => toggleTodo(todo.id)}
+          />
+          <span>${todo.text}</span>
+        </li>
+      `
+    );
 
   return html`
-    <div>
-      <h3>Todo List</h3>
-      <ul>
-        ${state.todos.map(
-          (todo: { completed: any; text: any }, index: any) => html`
-            <li>
-              <input
-                type="checkbox"
-                checked="${todo.completed}"
-                onchange=${() => toggleTodo(index)}
-              />
-              ${todo.text}
-            </li>
-          `
-        )}
+    <div class="todo-container">
+      ${props.title ? html`<h3>${props.title}</h3>` : ""}
+      ${slots.header
+        ? html` <div class="todo-header">${slots.header}</div> `
+        : ""}
+
+      <ul class="todo-list">
+        ${state.todos.map(renderTodoItem)}
       </ul>
-      <button onclick=${addTodo}>Add Todo</button>
+
+      ${slots.footer
+        ? html` <div class="todo-footer">${slots.footer}</div> `
+        : ""}
+
+      <button onclick=${addTodo} class="add-todo-btn">Add Todo</button>
     </div>
+
+    <style>
+      .todo-container {
+        max-width: 500px;
+        margin: 20px auto;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+
+      .todo-header {
+        margin-bottom: 20px;
+      }
+
+      .todo-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .todo-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+        transition: opacity 0.2s ease;
+      }
+
+      .todo-item.completed span {
+        text-decoration: line-through;
+        color: #888;
+      }
+
+      .todo-item input[type="checkbox"] {
+        margin-right: 10px;
+      }
+
+      .todo-footer {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+      }
+
+      .add-todo-btn {
+        margin-top: 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+      }
+
+      .add-todo-btn:hover {
+        background: #0056b3;
+      }
+
+      /* Animation for new items */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .todo-item[data-rid-key] {
+        animation: fadeIn 0.3s ease;
+      }
+    </style>
   `;
 };
+
+// Define prop types for the Todo component
+export const todoProps = {
+  items: {
+    type: "array" as const,
+    required: false,
+    default: [] as TodoItem[],
+  },
+  title: {
+    type: "string" as const,
+    required: false,
+  },
+} as const;
+
+// Define available slots
+export const todoSlots = ["header", "footer"] as const;
+
+// Type helper for component props
+export type TodoPropTypes = typeof todoProps;

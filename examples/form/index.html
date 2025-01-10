@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RID Form Demo</title>
+    <style>
+      /* Draggable skills styles */
+      .skill-item {
+        display: inline-block;
+        background: #007bff;
+        color: white;
+        padding: 8px 16px;
+        margin: 4px;
+        border-radius: 4px;
+        cursor: move;
+      }
+
+      .skills-palette {
+        margin: 20px auto;
+        max-width: 500px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .skills-palette h3 {
+        margin-top: 0;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="skills-palette">
+      <h3>Drag these skills to the form:</h3>
+      <div
+        class="skill-item"
+        draggable="true"
+        ondragstart="event.dataTransfer.setData('text/plain', 'JavaScript')"
+      >
+        JavaScript
+      </div>
+      <div
+        class="skill-item"
+        draggable="true"
+        ondragstart="event.dataTransfer.setData('text/plain', 'TypeScript')"
+      >
+        TypeScript
+      </div>
+      <div
+        class="skill-item"
+        draggable="true"
+        ondragstart="event.dataTransfer.setData('text/plain', 'HTML/CSS')"
+      >
+        HTML/CSS
+      </div>
+      <div
+        class="skill-item"
+        draggable="true"
+        ondragstart="event.dataTransfer.setData('text/plain', 'React')"
+      >
+        React
+      </div>
+    </div>
+
+    <rid-form></rid-form>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

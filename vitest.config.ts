@@ -1,22 +1,20 @@
-// vitest.config.ts
 import { defineConfig } from "vitest/config";
-import path from "path";
-
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+import { resolve } from "path";
 
 export default defineConfig({
-  resolve: {
-    alias: {
-      "@rid": path.resolve(__dirname, "./src"),
-      "@rid/*": path.resolve(__dirname, "./src/*"),
-    },
-  },
   test: {
     globals: true,
-    setupFiles: "./tests/setup.ts",
+    environment: "jsdom",
+    setupFiles: ["./tests/setup.ts"],
+    include: ["tests/**/*.spec.ts"],
+    coverage: {
+      reporter: ["text", "json", "html"],
+      exclude: ["node_modules/", "tests/setup.ts"],
+    },
+  },
+  resolve: {
     alias: {
-      "@rid": path.resolve(__dirname, "./src"),
-      "@rid/*": path.resolve(__dirname, "./src/*"),
+      "@rid": resolve(__dirname, "./src"),
     },
   },
 });

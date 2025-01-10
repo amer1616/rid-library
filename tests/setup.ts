@@ -1,10 +1,11 @@
-/// <reference types="jest" />
+import { beforeAll, afterAll, vi } from "vitest";
+
 // Example: Mocking console methods to suppress logs during tests
 beforeAll(() => {
-  jest.spyOn(console, "log").mockImplementation(() => {});
-  jest.spyOn(console, "error").mockImplementation(() => {});
+  vi.spyOn(console, "log").mockImplementation(() => {});
+  vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
 afterAll(() => {
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });

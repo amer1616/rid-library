@@ -1,67 +1,28 @@
-// import { html, reactive, render, effect } from "../../src/index.js";
+import { define } from "../../src/rid";
+import { Todo, todoProps, todoSlots } from "../../src/components/rid-todo";
 
-// // interface for Todo items
-// interface Todo {
-//   id: number;
-//   text: string;
-//   completed: boolean;
-// }
+// Register the Todo component with prop types and slots
+define("rid-todo", Todo, { props: todoProps, slots: todoSlots });
 
-// /**
-//  * Initialize reactive state.
-//  */
-// const state = reactive({
-//   todos: [] as Todo[],
-//   newTodoTxt: "",
-// });
+// Initial todos
+const initialTodos = [
+  { text: "Learn RID.js", completed: true },
+  { text: "Build something awesome", completed: false },
+  { text: "Share with the world", completed: false },
+];
 
-// /**
-//  * Computed properties for total and completed todos.
-//  */
-// const totalTodos = () => state.todos.length;
-// const completedTodos = () =>
-//   state.todos.filter((todo) => todo.completed).length;
-
-// /**
-//  * Log changes to total and completed todos.
-//  */
-// effect(() => {
-//   console.log(`Total Todos: ${totalTodos()}, Completed: ${completedTodos()}`);
-// });
-
-// // function add todo
-// const addTodo = (text: string) => {
-//   state.todos = [...state.todos, { id: Date.now(), text, completed: false }];
-//   state.newTodoTxt = "";
-// };
-
-// const todoTmpl = () => {
-//   // return h: html & hs: handlers
-//   const { h, hs } = html` <div class="container">
-//     <h1>Todo App</h1>
-//     <input
-//       type="text"
-//       placeholder="Add a todo"
-//       value=${state.newTodoTxt}
-//       oninput=${(e: any) => (state.newTodoTxt = e.target.value)}
-//       onkeydown=${(e: KeyboardEvent) => {
-//         if (e.key === "Enter" && state.newTodoTxt.trim() !== "") {
-//           addTodo(state.newTodoTxt.trim());
-//           state.newTodoTxt = "";
-//         }
-//       }}
-//     />
-//     <ul>
-//       <li><input type="text" placeholder="Add a todo" /></li>
-//     </ul>
-//   </div>`;
-//   return { h, hs };
-// };
-
-// // select element where app will be rendered
-// const el = document.getElementById("app");
-
-// /**
-//  * Render the template into the container and obtain the detach function.
-//  */
-// const detach = render(el!, todoTmpl);
+// Initialize the todo list with props and slots
+document.body.innerHTML = `
+  <rid-todo title="My Todo List" items='${JSON.stringify(initialTodos)}'>
+    <div slot="header">
+      <p style="color: #666; font-style: italic;">
+        Use this list to track your progress
+      </p>
+    </div>
+    <div slot="footer">
+      <p style="color: #666; text-align: center;">
+        Click "Add Todo" to create a new task
+      </p>
+    </div>
+  </rid-todo>
+`;
