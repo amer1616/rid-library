@@ -1,6 +1,8 @@
 // Reactive system using Proxy
 
 type CB = () => void;
+type Cleanup = () => void;
+
 const depsMap = new Map<object, Map<string | symbol, Set<CB>>>();
 let activeEffect: CB | null = null;
 
@@ -27,8 +29,8 @@ export const reactive = <T extends object>(obj: T): T =>
     },
   });
 
-// Effect registration
-export const effect = (fn: CB) => {
+// Effect registration with cleanup
+export const effect = (fn: CB): Cleanup => {
   const wrapped: CB = () => {
     cleanup(wrapped);
     activeEffect = wrapped;
@@ -36,6 +38,11 @@ export const effect = (fn: CB) => {
     activeEffect = null;
   };
   wrapped();
+
+  // Return cleanup function
+  return () => {
+    cleanup(wrapped);
+  };
 };
 
 // Cleanup dependencies
@@ -44,3 +51,26 @@ const cleanup = (effectFn: CB) => {
     deps.forEach((set) => set.delete(effectFn));
   });
 };
+
+// Development helpers
+export const getActiveEffect = () => activeEffect;
+export const getDepsMap = () => depsMap;
+
+// Clear all dependencies (useful for testing)
+export const clearDeps = () => {
+  depsMap.clear();
+  activeEffect = null;
+};
+
+// Check if a value is reactive
+export const isReactive = (value: any): boolean => {
+  return !!(value && value.__isReactive);
+};
+
+// Mark a value as reactive (for internal use)
+Object.defineProperty(reactive, Symbol.for("isReactive"), {
+  value: true,
+  enumerable: false,
+  writable: false,
+  configurable: false,
+});

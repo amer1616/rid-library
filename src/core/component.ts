@@ -1,10 +1,11 @@
 import { effect } from "./reactive";
+import { type TemplateResult, type EventHandler } from "./template";
 import {
-  SUPPORTED_EVENTS,
-  type TemplateResult,
-  type SupportedEvent,
-  type EventHandler,
-} from "./template";
+  registerComponent,
+  registerInstance,
+  unregisterInstance,
+  devErrors,
+} from "./hmr";
 
 // Prop type definitions
 interface StringPropType {
@@ -67,6 +68,11 @@ export type PropTypeToTSType<T extends PropTypes> = {
   [K in keyof T]: InferPropType<T[K]>;
 };
 
+export type ComponentFunction<P extends PropTypes = any> = (
+  props: PropTypeToTSType<P>,
+  slots: Record<string, HTMLElement[]>
+) => TemplateResult;
+
 const handlers = new Map<string, EventHandler>();
 
 // Prop validation and conversion
@@ -92,10 +98,15 @@ const convertValue = (value: string | null, type: PropType["type"]): any => {
   }
 };
 
-const validateProp = (name: string, value: any, propType: PropType): any => {
+const validateProp = (
+  componentName: string,
+  name: string,
+  value: any,
+  propType: PropType
+): any => {
   // Handle undefined/null when required
   if (propType.required && value == null) {
-    throw new Error(`Prop "${name}" is required but was not provided`);
+    throw new Error(devErrors.MISSING_REQUIRED_PROP(componentName, name));
   }
 
   // Use default value if provided and value is undefined
@@ -112,27 +123,37 @@ const validateProp = (name: string, value: any, propType: PropType): any => {
   switch (propType.type) {
     case "string":
       if (typeof value !== "string") {
-        throw new Error(`Prop "${name}" must be a string`);
+        throw new Error(
+          devErrors.INVALID_PROP_TYPE(componentName, name, "string", value)
+        );
       }
       break;
     case "number":
       if (typeof value !== "number") {
-        throw new Error(`Prop "${name}" must be a number`);
+        throw new Error(
+          devErrors.INVALID_PROP_TYPE(componentName, name, "number", value)
+        );
       }
       break;
     case "boolean":
       if (typeof value !== "boolean") {
-        throw new Error(`Prop "${name}" must be a boolean`);
+        throw new Error(
+          devErrors.INVALID_PROP_TYPE(componentName, name, "boolean", value)
+        );
       }
       break;
     case "array":
       if (!Array.isArray(value)) {
-        throw new Error(`Prop "${name}" must be an array`);
+        throw new Error(
+          devErrors.INVALID_PROP_TYPE(componentName, name, "array", value)
+        );
       }
       break;
     case "object":
       if (typeof value !== "object" || Array.isArray(value)) {
-        throw new Error(`Prop "${name}" must be an object`);
+        throw new Error(
+          devErrors.INVALID_PROP_TYPE(componentName, name, "object", value)
+        );
       }
       break;
   }
@@ -140,63 +161,18 @@ const validateProp = (name: string, value: any, propType: PropType): any => {
   return value;
 };
 
-// Render function using event delegation
-const render = (
-  el: ShadowRoot | HTMLElement,
-  template: () => TemplateResult
-): (() => void) => {
-  if (typeof window === "undefined") return () => {}; // Server-side: Do nothing
-
-  effect(() => {
-    try {
-      const { h, hs } = template();
-      el.innerHTML = h;
-      handlers.clear();
-      hs.forEach(({ id, h }) => handlers.set(id, h));
-    } catch (err) {
-      console.error("Render error:", err);
-    }
-  });
-
-  const eventListeners = new Map<SupportedEvent, (event: Event) => void>();
-
-  const createListener = (eventType: SupportedEvent) => (event: Event) => {
-    const target = event.target as HTMLElement;
-    const el = target.closest(`[data-rid-h="${eventType}"][data-rid-id]`);
-    if (el) {
-      const handlerId = el.getAttribute("data-rid-id")!;
-      const handler = handlers.get(handlerId);
-      handler?.(event);
-    }
-  };
-
-  // Setup event delegation for all supported events
-  SUPPORTED_EVENTS.forEach((eventType) => {
-    const listener = createListener(eventType);
-    eventListeners.set(eventType, listener);
-    el.addEventListener(eventType, listener);
-  });
-
-  // Cleanup function to remove all event listeners
-  return () => {
-    eventListeners.forEach((listener, eventType) => {
-      el.removeEventListener(eventType, listener);
-    });
-  };
-};
-
 // Web Component definition with prop types and slots
 export const define = <P extends PropTypes>(
   name: string,
-  component: (
-    props: PropTypeToTSType<P>,
-    slots: Record<string, HTMLElement[]>
-  ) => TemplateResult,
+  component: ComponentFunction<P>,
   options: ComponentOptions<P> = {}
 ) => {
   if (customElements.get(name)) return;
 
   const { props: propTypes = {} as P, slots: slotNames = [] } = options;
+
+  // Register component for HMR
+  registerComponent(name, component, propTypes, slotNames);
 
   customElements.define(
     name,
@@ -205,6 +181,7 @@ export const define = <P extends PropTypes>(
       private shadow: ShadowRoot;
       private props: Partial<PropTypeToTSType<P>> = {};
       private slots: Record<string, HTMLElement[]> = {};
+      private eventCleanups: (() => void)[] = [];
 
       constructor() {
         super();
@@ -223,15 +200,27 @@ export const define = <P extends PropTypes>(
         const propType = propTypes[name];
         if (!propType) return;
 
-        const convertedValue = convertValue(newValue, propType.type);
-        if (convertedValue !== undefined) {
-          const validatedValue = validateProp(name, convertedValue, propType);
-          (this.props as any)[name] = validatedValue;
-          this.update();
+        try {
+          const convertedValue = convertValue(newValue, propType.type);
+          if (convertedValue !== undefined) {
+            const validatedValue = validateProp(
+              this.tagName.toLowerCase(),
+              name,
+              convertedValue,
+              propType
+            );
+            (this.props as any)[name] = validatedValue;
+            this.requestUpdate();
+          }
+        } catch (error) {
+          console.error(error);
         }
       }
 
       connectedCallback() {
+        // Register instance for HMR
+        registerInstance(name, this);
+
         // Initialize props from attributes
         Array.from(this.attributes).forEach((attr) => {
           const name = attr.name;
@@ -250,11 +239,20 @@ export const define = <P extends PropTypes>(
 
         // Initialize slots
         this.initializeSlots();
-        this.update();
+        this.requestUpdate();
       }
 
       disconnectedCallback() {
+        // Unregister instance for HMR
+        unregisterInstance(name, this);
+
+        // Clean up event listeners
+        this.eventCleanups.forEach((cleanup) => cleanup());
+        this.eventCleanups = [];
+
+        // Clean up reactive effects
         this.cleanup?.();
+        this.cleanup = null;
       }
 
       private initializeSlots() {
@@ -279,24 +277,73 @@ export const define = <P extends PropTypes>(
         });
       }
 
-      private update() {
-        // Validate all props
-        const validatedProps = Object.entries(propTypes).reduce(
-          (acc, [name, propType]) => {
-            const value = validateProp(
-              name,
-              this.props[name as keyof P],
-              propType
-            );
-            (acc as any)[name] = value;
-            return acc;
-          },
-          {} as PropTypeToTSType<P>
-        );
+      requestUpdate() {
+        try {
+          // Validate all props
+          const validatedProps = Object.entries(propTypes).reduce(
+            (acc, [name, propType]) => {
+              const value = validateProp(
+                this.tagName.toLowerCase(),
+                name,
+                this.props[name as keyof P],
+                propType
+              );
+              (acc as any)[name] = value;
+              return acc;
+            },
+            {} as PropTypeToTSType<P>
+          );
 
-        this.cleanup = render(this.shadow, () =>
-          component(validatedProps, this.slots)
-        );
+          // Clean up previous event listeners
+          this.eventCleanups.forEach((cleanup) => cleanup());
+          this.eventCleanups = [];
+
+          // Render component
+          const cleanup = this.render(() => {
+            try {
+              return component(validatedProps, this.slots);
+            } catch (error) {
+              console.error(devErrors.COMPONENT_ERROR(name, error as Error));
+              return { h: "", hs: [] };
+            }
+          });
+
+          // Store cleanup function
+          if (cleanup) {
+            this.cleanup = cleanup;
+          }
+        } catch (error) {
+          console.error(devErrors.TEMPLATE_ERROR(name, error as Error));
+        }
+      }
+
+      private render(template: () => TemplateResult): (() => void) | null {
+        if (typeof window === "undefined") return null; // Server-side: Do nothing
+
+        const dispose = effect(() => {
+          try {
+            const { h, hs } = template();
+            this.shadow.innerHTML = h;
+            handlers.clear();
+
+            // Set up event handlers
+            hs.forEach(({ id, e, h }) => {
+              handlers.set(id, h);
+              const el = this.shadow.querySelector(`[data-rid-id="${id}"]`);
+              if (el) {
+                const listener = (event: Event) => h(event);
+                el.addEventListener(e, listener);
+                this.eventCleanups.push(() =>
+                  el.removeEventListener(e, listener)
+                );
+              }
+            });
+          } catch (err) {
+            console.error(devErrors.TEMPLATE_ERROR(name, err as Error));
+          }
+        });
+
+        return dispose;
       }
     }
   );

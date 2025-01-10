@@ -7,42 +7,29 @@
   "module": "dist/rid.es.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist",
-    "README.md"
+    "dist"
   ],
   "exports": {
     ".": {
       "import": "./dist/rid.es.js",
       "require": "./dist/rid.umd.js",
       "types": "./dist/index.d.ts"
-    },
-    "./server": {
-      "import": "./dist/server.js",
-      "require": "./dist/server.cjs",
-      "types": "./dist/server.d.ts"
     }
   },
   "scripts": {
-    "dev:counter": "vite serve examples/counter",
-    "dev:todo": "vite serve examples/todo",
-    "dev:form": "vite serve examples/form",
+    "dev": "vite",
     "build": "vite build",
     "build:types": "tsc --emitDeclarationOnly",
-    "build:server": "vite build --config vite.server.config.ts",
-    "build:all": "npm run build && npm run build:types && npm run build:server",
+    "build:all": "npm run build && npm run build:types",
     "test": "vitest run",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
-    "size": "size-limit",
-    "analyze": "size-limit --why"
+    "prepublishOnly": "npm run build:all",
+    "size": "size-limit"
   },
   "size-limit": [
     {
       "path": "dist/rid.es.js",
-      "limit": "3 KB"
-    },
-    {
-      "path": "dist/server.js",
       "limit": "2 KB"
     }
   ],
@@ -51,14 +38,12 @@
     "reactive",
     "ui",
     "frontend",
-    "typescript",
-    "ssr"
+    "typescript"
   ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "@size-limit/preset-small-lib": "^11.0.0",
-    "@types/jest": "^29.5.14",
     "@types/node": "^22.10.5",
     "size-limit": "^11.0.0",
     "typescript": "~5.6.2",
@@ -66,7 +51,8 @@
     "vite-plugin-dts": "^4.3.0",
     "vitest": "^2.1.4"
   },
-  "peerDependencies": {
+  "sideEffects": false,
+  "engines": {
     "node": ">=18.0.0"
   }
 }
