@@ -1,4 +1,4 @@
-import { html, reactive, key } from "../../src/rid";
+import { html, reactive, key } from "@rid/rid";
 
 interface TodoItem {
   id: string;

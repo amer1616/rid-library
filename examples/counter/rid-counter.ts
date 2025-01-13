@@ -1,4 +1,4 @@
-import { html, reactive } from "@rid/index";
+import { html, reactive } from "@rid/rid";
 
 export interface CounterProps {
   count?: number;

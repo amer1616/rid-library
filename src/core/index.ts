@@ -1,10 +1,9 @@
 import type { TemplateResult } from "./template";
 
 // Re-export core functionality with optimized names
-export { reactive as r } from "./reactive";
+export { reactive as r, effect as f } from "./reactive";
 export { html as h, key } from "./template";
 export { define } from "./component";
-export { effect as f } from "./reactive";
 export { createStore } from "./store";
 
 // Export types
