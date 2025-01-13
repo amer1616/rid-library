@@ -1,5 +1,5 @@
 {
-  "name": "ridjs",
+  "name": "rid",
   "version": "0.1.0",
   "description": "Lightweight reactive web components library",
   "type": "module",

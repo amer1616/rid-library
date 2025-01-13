@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { define } from "../src/rid";
-import { Todo, todoProps, todoSlots } from "../src/components/rid-todo";
+import { Todo, todoProps, todoSlots } from "../examples/todo/rid-todo";
 
 describe("<rid-todo> Component", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
-    define("rid-todo", Todo, { props: todoProps, slots: todoSlots });
+    define("rid-todo", Todo, { props: todoProps, slot: todoSlots });
   });
 
   it("renders todo list with empty state", () => {

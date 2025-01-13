@@ -1,7 +1,7 @@
 import { html } from "../../src";
 import { renderToString, renderToStream } from "../../src/server";
-import { Counter } from "../../src/components/rid-counter";
-import { Todo } from "../../src/components/rid-todo";
+import { Counter } from "../counter/rid-counter";
+import { Todo } from "../todo/rid-todo";
 
 // Example data
 const todos = [

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { define } from "../src/rid";
-import { Form } from "../src/components/rid-form";
+import { Form } from "../examples/form/rid-form";
 
 describe("<rid-form> Component", () => {
   beforeEach(() => {

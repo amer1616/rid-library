@@ -1,5 +1,4 @@
-/// <reference types="jest" />
-import { reactive, effect, html } from "@rid/main";
+import { reactive, effect, html } from "@rid/index";
 
 describe("RID Library Core Tests", () => {
   it("should create a reactive object", () => {

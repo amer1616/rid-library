@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { define } from "../src/rid";
-import { Counter, counterProps } from "../src/components/rid-counter";
+import { Counter, counterProps } from "../examples/counter/rid-counter";
 
 describe("<rid-counter> Component", () => {
   beforeEach(() => {

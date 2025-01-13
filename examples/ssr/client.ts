@@ -1,6 +1,6 @@
 import { define } from "../../src";
-import { Counter, counterProps } from "../../src/components/rid-counter";
-import { Todo, todoProps } from "../../src/components/rid-todo";
+import { Counter, counterProps } from "../counter/rid-counter";
+import { Todo, todoProps } from "../todo/rid-todo";
 
 // Register components
 define("rid-counter", Counter, { props: counterProps });
