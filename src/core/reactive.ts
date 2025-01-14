@@ -71,7 +71,7 @@ export const effect = (fn: CB): Cleanup => {
 
 // Cleanup dependencies
 const cleanup = (effectFn: CB) => {
-  for (const deps of depsMap.values()) {
+  for (const deps of Object.values(depsMap)) {
     for (const effectSet of deps.values()) {
       effectSet.delete(effectFn);
     }
@@ -84,7 +84,7 @@ export const getDepsMap = () => depsMap;
 
 // Clear all dependencies (useful for testing)
 export const clearDeps = () => {
-  for (const deps of depsMap.values()) deps.clear();
+  for (const deps of Object.values(depsMap)) deps.clear();
   activeEffect = null;
 };
 
