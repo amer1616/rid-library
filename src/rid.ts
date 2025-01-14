@@ -1,4 +1,4 @@
-export { reactive, effect } from "./core/reactive";
+export { reactive, computed, effect } from "./core/reactive";
 export { html, key } from "./core/template";
 export { define } from "./core/component";
 
@@ -8,7 +8,7 @@ export type {
   PropTypes,
   ComponentOptions,
   PropTypeToTSType,
-} from "./core/component";
+} from "./core/index";
 
 export type {
   TemplateResult,

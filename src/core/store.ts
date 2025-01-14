@@ -1,4 +1,4 @@
-import { reactive, effect } from "./reactive";
+import { reactive, computed, effect } from "./reactive";
 
 // Store types
 export interface StoreInstance<T extends object> {
@@ -70,25 +70,6 @@ export function createStore<T extends object>(
       }
       action(state, ...args);
     },
-  };
-}
-
-// Create a computed value
-export function computed<T>(fn: () => T): () => T {
-  let value: T;
-  let dirty = true;
-
-  effect(() => {
-    dirty = true;
-    value = fn();
-  });
-
-  return () => {
-    if (dirty) {
-      dirty = false;
-      value = fn();
-    }
-    return value;
   };
 }
 

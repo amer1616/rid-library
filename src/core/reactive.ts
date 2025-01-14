@@ -25,12 +25,12 @@ const queueEffect = (effect: Effect) => {
 const flushQueue = () => {
   if (isFlushing || queue.size === 0) return;
   isFlushing = true;
-  
+
   // Process effects in order they were created to avoid dependency issues
   for (const effect of [...queue]) {
     effect();
   }
-  
+
   queue.clear();
   isFlushing = false;
 };
@@ -54,50 +54,70 @@ export const reactive = <T extends object>(obj: T): T => {
     get(target, key, receiver) {
       const result = Reflect.get(target, key, receiver);
       track(target, key);
-      
+
       // Only make nested objects reactive when accessed
-      return result && typeof result === 'object' ? reactive(result) : result;
+      return result && typeof result === "object" ? reactive(result) : result;
     },
     set(target, key, value, receiver) {
       const oldValue = Reflect.get(target, key, receiver);
       const result = Reflect.set(target, key, value, receiver);
-      
+
       // Only trigger if value actually changed
       if (oldValue !== value && result) {
         trigger(target, key);
       }
-      
+
       return result;
     },
     deleteProperty(target, key) {
       const hadKey = key in target;
       const result = Reflect.deleteProperty(target, key);
-      
+
       if (hadKey && result) {
         trigger(target, key);
       }
-      
+
       return result;
-    }
+    },
   });
 };
+
+// Add computed hook
+export function computed<T>(fn: () => T): () => T {
+  let value: T;
+  let dirty = true;
+
+  effect(() => {
+    dirty = true;
+    value = fn();
+  });
+
+  return () => {
+    if (dirty) {
+      dirty = false;
+      value = fn();
+    }
+    return value;
+  };
+}
 
 const track = (target: object, key: string | symbol) => {
   if (!activeEffect) return;
 
   let depsMap = targetMap.get(target);
   if (!depsMap) {
-    targetMap.set(target, (depsMap = new Map()));
+    depsMap = new Map<string | symbol, Set<Effect>>();
+    targetMap.set(target, depsMap);
   }
 
   let dep = depsMap.get(key);
   if (!dep) {
-    depsMap.set(key, (dep = new Set()));
+    dep = new Set<Effect>();
+    depsMap.set(key, dep);
   }
 
   if (!dep.has(activeEffect)) {
     dep.add(activeEffect);
-    activeEffect.deps = activeEffect.deps || new Map();
     activeEffect.deps.set(target, key);
   }
 };
@@ -111,17 +131,17 @@ const trigger = (target: object, key: string | symbol) => {
 
   // Create a new set to avoid infinite loops
   const effectsToRun = new Set(effects);
-  effectsToRun.forEach(effect => queueEffect(effect));
+  effectsToRun.forEach((effect) => queueEffect(effect));
 };
 
-export const effect = (fn: Effect): () => void => {
+export const effect = (fn: Effect): (() => void) => {
   const effectFn: Effect = () => {
     cleanup(effectFn);
-    
+
     // Handle nested effects correctly
     effectStack.push(effectFn);
     activeEffect = effectFn;
-    
+
     try {
       return fn();
     } finally {
@@ -130,49 +150,45 @@ export const effect = (fn: Effect): () => void => {
     }
   };
 
-  effectFn.deps = new Map();
-  
+  effectFn.deps = new WeakMap<object, string | symbol>();
+
   effectFn();
-  
+
   return () => cleanup(effectFn);
 };
 
 const cleanup = (effectFn: Effect) => {
-  // Get all targets that this effect depends on
-  const targets = effectFn.deps?.keys() || [];
-  
-  // Remove this effect from all its dependencies
-  for (const target of targets) {
+  for (const [target, key] of Object.values(effectFn.deps)) {
+    // Remove this effect from all its dependencies
     const depsMap = targetMap.get(target);
-    if (!depsMap) continue;
-    
-    for (const [key, effects] of depsMap) {
-      effects.delete(effectFn);
-      
-      // Cleanup empty sets
-      if (effects.size === 0) {
-        depsMap.delete(key);
+    if (depsMap) {
+      const effects = depsMap.get(key);
+      if (effects) {
+        effects.delete(effectFn);
+
+        // Cleanup empty sets
+        if (effects.size === 0) {
+          depsMap.delete(key);
+        }
+      }
+      // Cleanup empty maps
+      if (depsMap.size === 0) {
+        targetMap.delete(target);
       }
     }
-    
-    // Cleanup empty maps
-    if (depsMap.size === 0) {
-      targetMap.delete(target);
-    }
   }
-  
   // Clear the effect's dependencies
-  effectFn.deps?.clear();
+  effectFn.deps = new WeakMap();
 };
 
 export const isReactive = (value: any): boolean => {
-  return !!(value && value[Symbol.for('isReactive')]);
+  return !!(value && value[Symbol.for("isReactive")]);
 };
 
 // Mark reactive values
-Object.defineProperty(reactive, Symbol.for('isReactive'), {
+Object.defineProperty(reactive, Symbol.for("isReactive"), {
   value: true,
   enumerable: false,
   writable: false,
-  configurable: false
+  configurable: false,
 });
