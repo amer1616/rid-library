@@ -1,4 +1,4 @@
-import { r as reactive, h as html, define } from "../../src/core";
+import { reactive, html, define } from "@rid/rid";
 
 interface CounterState {
   count: number;

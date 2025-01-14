@@ -4,10 +4,10 @@
     "paths": {
       "@rid/*": ["src/*"]
     },
-    "target": "ES2015",
+    "target": "es2015",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "lib": ["ES2020", "ES2015", "DOM", "DOM.Iterable"],
+    "lib": ["ES2020", "es2015", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,

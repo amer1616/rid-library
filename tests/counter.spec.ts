@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { define } from "../src/rid";
+import { define } from "@rid/rid";
 import { Counter, counterProps } from "../examples/counter/rid-counter";
 
 describe("<rid-counter> Component", () => {

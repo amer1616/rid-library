@@ -3,11 +3,15 @@
 type CB = () => void;
 type Cleanup = () => void;
 
-const depsMap = new Map<object, Map<string | symbol, Set<CB>>>();
+const depsMap = new WeakMap<object, Map<string | symbol, Set<CB>>>();
 let activeEffect: CB | null = null;
 
-export const reactive = <T extends object>(obj: T): T =>
-  new Proxy(obj, {
+export const reactive = <T extends object>(obj: T): T => {
+  // Use WeakMap for better memory management
+  if (!depsMap.has(obj)) {
+    depsMap.set(obj, new Map());
+  }
+  return new Proxy(obj, {
     get(target, key, receiver) {
       const res = Reflect.get(target, key, receiver);
       if (activeEffect) {
@@ -28,14 +32,34 @@ export const reactive = <T extends object>(obj: T): T =>
       return res;
     },
   });
+};
+
+//Added batching support to prevent unnecessary re-renders
+let batchDepth = 0;
+const pendingEffects = new Set<CB>();
+
+export const batch = (fn: () => void) => {
+  batchDepth++;
+  try {
+    fn();
+  } finally {
+    if (--batchDepth === 0) {
+      pendingEffects.forEach((effect) => effect());
+      pendingEffects.clear();
+    }
+  }
+};
 
 // Effect registration with cleanup
 export const effect = (fn: CB): Cleanup => {
   const wrapped: CB = () => {
     cleanup(wrapped);
     activeEffect = wrapped;
-    fn();
-    activeEffect = null;
+    try {
+      fn();
+    } finally {
+      activeEffect = null;
+    }
   };
   wrapped();
 
@@ -47,9 +71,11 @@ export const effect = (fn: CB): Cleanup => {
 
 // Cleanup dependencies
 const cleanup = (effectFn: CB) => {
-  depsMap.forEach((deps) => {
-    deps.forEach((set) => set.delete(effectFn));
-  });
+  for (const deps of depsMap.values()) {
+    for (const effectSet of deps.values()) {
+      effectSet.delete(effectFn);
+    }
+  }
 };
 
 // Development helpers
@@ -58,7 +84,7 @@ export const getDepsMap = () => depsMap;
 
 // Clear all dependencies (useful for testing)
 export const clearDeps = () => {
-  depsMap.clear();
+  for (const deps of depsMap.values()) deps.clear();
   activeEffect = null;
 };
 

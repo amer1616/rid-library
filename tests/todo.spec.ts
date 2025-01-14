@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { define } from "../src/rid";
+import { define } from "@rid/rid";
 import { Todo, todoProps, todoSlots } from "../examples/todo/rid-todo";
 
 describe("<rid-todo> Component", () => {
