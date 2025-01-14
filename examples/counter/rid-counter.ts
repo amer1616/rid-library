@@ -3,22 +3,31 @@ import { html, reactive } from "@rid/rid";
 export interface CounterProps {
   count?: number;
   label?: string;
+  children?: HTMLElement[];
 }
 
 export const Counter = (
   props: Partial<CounterProps>,
-  slots: Record<string, HTMLElement[]>
 ) => {
   const state = reactive({
-    count: props.count ?? counterProps.count.default,
+    count: props.count ?? 0,
   });
 
+  // Static data examples
+  const buttonText = "Increment";
+  const greeting = "Welcome to the counter!";
+  const styles = {
+    color: "blue",
+    padding: "10px"
+  };
+
   return html`
-    <div>
+    <div style=${styles.padding}>
+      ${greeting}
       ${props.label ? html`<label>${props.label}</label>` : ""}
-      <p>Count: ${state.count}</p>
-      <button onclick=${() => state.count++}>Increment</button>
-      ${slots.default ? slots.default : ""}
+      <p style="color: ${styles.color}">Count: ${state.count}</p>
+      <button onclick=${() => state.count++}>${buttonText}</button>
+      ${props.children ? props.children : ""}
     </div>
   `;
 };
@@ -33,5 +42,8 @@ export const counterProps = {
   label: {
     type: "string" as const,
     required: false,
+  },
+  children: {
+    type: "children" as const,
   },
 } as const;

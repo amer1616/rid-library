@@ -9,20 +9,21 @@ interface TodoItem {
 interface TodoProps {
   items?: TodoItem[];
   title?: string;
+  children?: HTMLElement[];
 }
 
 let nextId = 1;
 
 export const Todo = (
   props: Partial<TodoProps>,
-  slots: Record<string, HTMLElement[]>
+  children: HTMLElement[]
 ) => {
   const state = reactive({
     todos:
       props.items?.map((item) => ({
         ...item,
         id: item.id || String(nextId++),
-      })) ?? todoProps.items.default,
+      })) ?? [],
   });
 
   const toggleTodo = (id: string) => {
@@ -58,17 +59,11 @@ export const Todo = (
   return html`
     <div class="todo-container">
       ${props.title ? html`<h3>${props.title}</h3>` : ""}
-      ${slots.header
-        ? html` <div class="todo-header">${slots.header}</div> `
-        : ""}
+      ${children ? html` <div class="todo-header">${children}</div> ` : ""}
 
       <ul class="todo-list">
         ${state.todos.map(renderTodoItem)}
       </ul>
-
-      ${slots.footer
-        ? html` <div class="todo-footer">${slots.footer}</div> `
-        : ""}
 
       <button onclick=${addTodo} class="add-todo-btn">Add Todo</button>
     </div>
@@ -108,12 +103,6 @@ export const Todo = (
 
       .todo-item input[type="checkbox"] {
         margin-right: 10px;
-      }
-
-      .todo-footer {
-        margin-top: 20px;
-        padding-top: 20px;
-        border-top: 1px solid #eee;
       }
 
       .add-todo-btn {
@@ -161,10 +150,11 @@ export const todoProps = {
     type: "string" as const,
     required: false,
   },
+  children: {
+    type: "children" as const,
+    required: false,
+  },
 } as const;
-
-// Define available slots
-export const todoSlots = ["header", "footer"] as const;
 
 // Type helper for component props
 export type TodoPropTypes = typeof todoProps;

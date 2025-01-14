@@ -1,268 +1,130 @@
 import { TemplateResult } from "./template";
+import { reactive, effect } from "./reactive";
 
-// Prop type definitions
-interface StringPropType<T extends string = string> {
-  type: "string";
+type PropType = {
+  type: "string" | "number" | "boolean" | "array" | "object" | "function" | "children";
   required?: boolean;
-  default?: T;
-  validate?: (value: string) => value is T;
-}
-
-interface NumberPropType {
-  type: "number";
-  required?: boolean;
-  default?: number;
-  validate?: (value: number) => boolean;
-}
-
-interface BooleanPropType {
-  type: "boolean";
-  required?: boolean;
-  default?: boolean;
-}
-
-interface ArrayPropType<T = any> {
-  type: "array";
-  required?: boolean;
-  default?: T[];
-  validate?: (value: T[]) => boolean;
-}
-
-interface ObjectPropType<T = object> {
-  type: "object";
-  required?: boolean;
-  default?: T;
-  validate?: (value: T) => boolean;
-}
-
-interface FunctionPropType {
-  type: "function";
-  required?: boolean;
-}
-
-export type PropType =
-  | StringPropType
-  | NumberPropType
-  | BooleanPropType
-  | ArrayPropType
-  | ObjectPropType
-  | FunctionPropType;
+  default?: any;
+  validate?: (value: any) => boolean;
+};
 
 export type PropTypes = Record<string, PropType>;
+type Props<P extends PropTypes> = {
+    [K in keyof P]: P[K] extends PropType & { required: true } 
+        ? PropTypeToValue<P[K]> 
+        : PropTypeToValue<P[K]> | undefined
+} & {
+    children?: HTMLElement[];
+};
 
-export interface ComponentOptions<P extends PropTypes> {
+type PropTypeToValue<T extends PropType> = 
+    T['type'] extends 'string' ? string :
+    T['type'] extends 'number' ? number :
+    T['type'] extends 'boolean' ? boolean :
+    T['type'] extends 'array' ? any[] :
+    T['type'] extends 'object' ? object :
+    T['type'] extends 'function' ? Function :
+    T['type'] extends 'children' ? any :
+    never;
+
+interface Options<P extends PropTypes> {
   props?: P;
-  slot?: readonly string[] | string[];
+  shadow?: boolean;
 }
 
-type InferPropType<T extends PropType> = T extends StringPropType<infer S>
-  ? S
-  : T extends NumberPropType
-  ? number
-  : T extends BooleanPropType
-  ? boolean
-  : T extends ArrayPropType<infer A>
-  ? A[]
-  : T extends ObjectPropType<infer O>
-  ? O
-  : T extends FunctionPropType
-  ? Function
-  : never;
-
-export type PropTypeToTSType<T extends PropTypes> = {
-  [K in keyof T]: T[K] extends { required: true }
-    ? InferPropType<T[K]>
-    : InferPropType<T[K]> | undefined;
-};
-
-export type ComponentFunction<P extends PropTypes = any> = (
-  props: PropTypeToTSType<P>,
-  slot: Record<string, HTMLElement[]>
-) => TemplateResult;
-
-// Web Component definition with prop types and slots
 export const define = <P extends PropTypes>(
   name: string,
-  component: ComponentFunction<P>,
-  options: ComponentOptions<P> = {}
+  render: (props: Props<P>) => TemplateResult,
+  options: Options<P> = {}
 ) => {
   if (customElements.get(name)) return;
+  const { props: propTypes = {} as P, shadow = true } = options;
 
-  const { props: propTypes = {} as P, slot: slotNames = [] } = options;
+  class Component extends HTMLElement {
+    private root: ShadowRoot | HTMLElement;
+    private cleanup?: () => void;
+    private observer: MutationObserver;
 
-  customElements.define(
-    name,
-    class extends HTMLElement {
-      private cleanup: (() => void) | null = null;
-      private shadow: ShadowRoot;
-      private props: Partial<PropTypeToTSType<P>> = {};
-      private slots: Record<string, HTMLElement[]> = {};
-
-      constructor() {
-        super();
-        this.shadow = this.attachShadow({ mode: "open" });
-      }
-
-      static get observedAttributes() {
-        return Object.keys(propTypes);
-      }
-
-      attributeChangedCallback(
-        name: string,
-        _oldValue: string | null,
-        newValue: string | null
-      ) {
-        const propType = propTypes[name];
-        if (!propType) return;
-
-        let value: any = newValue;
-
-        // Convert value based on type
-        switch (propType.type) {
-          case "number":
-            value = newValue === null ? undefined : Number(newValue);
-            if (propType.validate && !propType.validate(value)) {
-              console.warn(`Invalid value for prop "${name}": ${value}`);
-              value = propType.default;
-            }
-            break;
-          case "boolean":
-            value = newValue !== null;
-            break;
-          case "array":
-            try {
-              value = newValue === null ? undefined : JSON.parse(newValue);
-              if (propType.validate && !propType.validate(value)) {
-                console.warn(`Invalid value for prop "${name}": ${value}`);
-                value = propType.default;
-              }
-            } catch {
-              value = propType.default;
-            }
-            break;
-          case "object":
-            try {
-              value = newValue === null ? undefined : JSON.parse(newValue);
-              if (propType.validate && !propType.validate(value)) {
-                console.warn(`Invalid value for prop "${name}": ${value}`);
-                value = propType.default;
-              }
-            } catch {
-              value = propType.default;
-            }
-            break;
-          case "function":
-            try {
-              value =
-                newValue === null
-                  ? undefined
-                  : new Function("return " + newValue)();
-            } catch {
-              value = undefined;
-            }
-            break;
-          case "string":
-            if (propType.validate && !propType.validate(value)) {
-              console.warn(`Invalid value for prop "${name}": ${value}`);
-              value = propType.default;
-            }
-            break;
-        }
-
-        // Use default if value is undefined
-        if (value === undefined && "default" in propType) {
-          value = propType.default;
-        }
-
-        // Update prop if valid
-        if (value !== undefined || !propType.required) {
-          (this.props as any)[name] = value;
-          this.update();
-        }
-      }
-
-      connectedCallback() {
-        // Initialize props from attributes
-        Array.from(this.attributes).forEach((attr) => {
-          const name = attr.name;
-          const propType = propTypes[name];
-          if (propType) {
-            this.attributeChangedCallback(name, null, attr.value);
-          }
-        });
-
-        // Initialize default values for props
-        Object.entries(propTypes).forEach(([name, propType]) => {
-          if (!(name in this.props) && "default" in propType) {
-            (this.props as any)[name] = propType.default;
-          }
-        });
-
-        // Initialize slots
-        this.initializeSlots();
-        this.update();
-      }
-
-      disconnectedCallback() {
-        this.cleanup?.();
-      }
-
-      private initializeSlots() {
-        // Default slot
-        const defaultSlotContent = Array.from(this.children).filter(
-          (child) => !child.hasAttribute("slot")
-        );
-        if (defaultSlotContent.length > 0) {
-          this.slots["default"] = Array.from(
-            defaultSlotContent
-          ) as HTMLElement[];
-        }
-
-        // Named slots
-        slotNames.forEach((slotName) => {
-          const slottedElements = Array.from(this.children).filter(
-            (child) => child.getAttribute("slot") === slotName
-          );
-          if (slottedElements.length > 0) {
-            this.slots[slotName] = Array.from(slottedElements) as HTMLElement[];
-          }
-        });
-      }
-
-      private update() {
-        this.cleanup = render(this.shadow, () =>
-          component(this.props as PropTypeToTSType<P>, this.slots)
-        );
-      }
-    }
-  );
-};
-
-// Internal render function
-const render = (
-  el: ShadowRoot,
-  template: () => TemplateResult
-): (() => void) => {
-  if (typeof window === "undefined") return () => {}; // Server-side: Do nothing
-
-  const result = template();
-  el.innerHTML = result.h;
-
-  // Set up event handlers
-  result.hs.forEach(({ id, e, h }) => {
-    const element = el.querySelector(`[data-rid-id="${id}"]`);
-    if (element) {
-      element.addEventListener(e, h);
-    }
-  });
-
-  // Return cleanup function
-  return () => {
-    result.hs.forEach(({ id, e, h }) => {
-      const element = el.querySelector(`[data-rid-id="${id}"]`);
-      if (element) {
-        element.removeEventListener(e, h);
-      }
+    private state = reactive({
+      props: {} as Props<P>
     });
-  };
+
+    constructor() {
+      super();
+      this.root = shadow ? this.attachShadow({ mode: "open" }) : this;
+      this.observer = new MutationObserver(() => this.updateChildren());
+    }
+
+    connectedCallback() {
+      this.initProps();
+      this.observer.observe(this, { childList: true, subtree: true, attributes: true });
+      this.updateChildren();
+      this.setupReactivity();
+    }
+
+    disconnectedCallback() {
+      this.cleanup?.();
+      this.observer.disconnect();
+    }
+
+    private initProps() {
+      // Initialize from attributes and defaults
+      Object.entries(propTypes).forEach(([name, type]) => {
+        if (this.hasAttribute(name)) {
+          this.updateProp(name, this.getAttribute(name));
+        } else if ('default' in type) {
+          (this.state.props as any)[name] = type.default;
+        }
+      });
+    }
+
+    private updateChildren() {
+      if (propTypes && 'children' in propTypes && propTypes.children.type === 'children') {
+        this.state.props.children = Array.from(this.children) as HTMLElement[];
+      }
+    }
+
+    private setupReactivity() {
+      this.cleanup = effect(() => {
+        const result = render(this.state.props as Props<P>);
+        this.root.innerHTML = result.h;
+        result.hs.forEach(({ id, e, h }) => {
+          const el = this.root.querySelector(`[data-rid-id="${id}"]`);
+          el?.addEventListener(e, h);
+        });
+      });
+    }
+
+    static get observedAttributes() {
+      return Object.keys(propTypes);
+    }
+
+    attributeChangedCallback(name: string, _: string | null, value: string | null) {
+      this.updateProp(name, value);
+    }
+
+    private updateProp(name: string, value: string | null) {
+      const type = propTypes[name];
+      if (!type) return;
+
+      let parsed: any = value;
+      switch (type.type) {
+        case 'number': parsed = value === null ? null : Number(value); break;
+        case 'boolean': parsed = value !== null; break;
+        case 'array':
+        case 'object':
+          try { parsed = value === null ? undefined : JSON.parse(value); }
+          catch { parsed = type.default; }
+          break;
+      }
+
+      if (type.validate?.(parsed) === false) {
+        parsed = type.default;
+      }
+
+      (this.state.props as any)[name] = parsed;
+    }
+  }
+
+  customElements.define(name, Component);
 };
