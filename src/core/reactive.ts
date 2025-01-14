@@ -1,7 +1,7 @@
 // Reactive system with optimized performance
 interface Effect extends Function {
   (): void;
-  deps?: Map<object, string | symbol>;
+  deps: WeakMap<object, string | symbol>;
 }
 
 // WeakMap for better memory management
