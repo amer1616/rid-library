@@ -41,13 +41,20 @@ const processArrayValue = (val: any[]): { h: string; hs: HandlerInfo[] } => {
   return { h, hs };
 };
 
-const processFunctionValue = (str: string, val: EventHandler, hs: HandlerInfo[]): { h: string; hs: HandlerInfo[] } => {
+const processFunctionValue = (
+  str: string,
+  val: EventHandler,
+  hs: HandlerInfo[]
+): { h: string; hs: HandlerInfo[] } => {
   const match = str.match(/\s(\??\w+)=$/);
   if (match) {
     const event = match[1].startsWith("?") ? match[1].slice(1) : match[1];
     const id = `h${hs.length}`;
     hs.push({ id, e: event, h: val });
-    return { h: ` ${EVENT_ATTRIBUTE_PREFIX}="${event}" ${ID_ATTRIBUTE_PREFIX}="${id}"`, hs };
+    return {
+      h: ` ${EVENT_ATTRIBUTE_PREFIX}="${event}" ${ID_ATTRIBUTE_PREFIX}="${id}"`,
+      hs,
+    };
   }
   return { h: "", hs };
 };
@@ -55,7 +62,12 @@ const processFunctionValue = (str: string, val: EventHandler, hs: HandlerInfo[])
 // Template engine
 export const html = (
   strings: TemplateStringsArray,
-  ...values: (string | number | EventHandler | { h: string; hs: HandlerInfo[] })[]
+  ...values: (
+    | string
+    | number
+    | EventHandler
+    | { h: string; hs: HandlerInfo[] }
+  )[]
 ): TemplateResult => {
   let h = "";
   let hs: HandlerInfo[] = [];
@@ -80,21 +92,6 @@ export const html = (
       }
     }
   });
-
-  return { h, hs };
-};
-
-// Key function for list rendering
-export const key = (
-  key: string | number,
-  template: TemplateResult
-): TemplateResult => {
-  const { h, hs } = template;
-  return {
-    h: h.replace(/^<(\w+)/, `<$1 key="${key}"`),
-    hs,
-  };
-};
 
   return { h, hs };
 };

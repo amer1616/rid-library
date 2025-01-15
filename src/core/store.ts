@@ -1,4 +1,4 @@
-import { state, computed, effect } from "./state";
+import { state, computed, effect, batch } from "./reactive";
 
 // Store types
 export interface StoreInstance<T extends object> {
@@ -15,13 +15,14 @@ export interface StoreInstance<T extends object> {
 // Internal types
 type ComputedCache = Map<string, any>;
 type ComputedFn<T, R> = (state: T) => R;
+
 type ActionFn<T> = (state: T, ...args: any[]) => void;
 
 // Create a store with state management
 export function createStore<T extends object>(
   initialState: T
 ): StoreInstance<T> {
-  const state = state(initialState);
+  const stateFn = state(initialState);
   const computedValues = new Map<string, ComputedFn<T, any>>();
   const computedCache: ComputedCache = new Map();
   const actions = new Map<string, ActionFn<T>>();
@@ -33,12 +34,13 @@ export function createStore<T extends object>(
   });
 
   return {
-    get state() {
+    get stateFn() {
       return state;
     },
 
     compute<R>(name: string, fn: ComputedFn<T, R>): StoreInstance<T> {
-      computedValues.set(name, fn);
+      const computedFn = computed(() => fn(stateFn));
+      computedValues.set(name, computedFn);
       return this;
     },
 
@@ -57,7 +59,7 @@ export function createStore<T extends object>(
 
       if (!computedCache.has(name)) {
         const fn = computedValues.get(name)!;
-        computedCache.set(name, fn(state));
+        computedCache.set(name, fn(this.state));
       }
 
       return computedCache.get(name);
@@ -68,7 +70,7 @@ export function createStore<T extends object>(
       if (!action) {
         throw new Error(`No action named "${name}"`);
       }
-      action(state, ...args);
+      batch(() => action(stateFn, ...args));
     },
   };
 }

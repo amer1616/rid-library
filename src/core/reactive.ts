@@ -186,7 +186,7 @@ export const isReactive = (value: any): boolean => {
 };
 
 // Mark reactive values
-Object.defineProperty(reactive, Symbol.for("isReactive"), {
+Object.defineProperty(state, Symbol.for("isReactive"), {
   value: true,
   enumerable: false,
   writable: false,

@@ -4,7 +4,6 @@ export { define } from "./core/component";
 
 // Export types
 export type {
-  PropType,
   PropTypes,
   ComponentOptions,
   PropTypeToTSType,

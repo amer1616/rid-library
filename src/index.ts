@@ -3,7 +3,6 @@ export { s as state, f as effect, h as html, define } from "./core";
 
 // Export types
 export type {
-  PropType,
   PropTypes,
   ComponentOptions,
   PropTypeToTSType,

@@ -1,14 +1,13 @@
 import type { TemplateResult } from "./template";
 
 // Re-export core functionality with optimized names
-export { state as r, effect as f } from "./state";
+export { state as s, effect as f, computed as c, batch as b } from "./reactive";
 export { html as h, key } from "./template";
 export { define } from "./component";
 export { createStore } from "./store";
 
 // Export types
 export type {
-  PropType,
   PropTypes,
   ComponentOptions,
   PropTypeToTSType,
@@ -24,7 +23,7 @@ export type {
 export type { StoreInstance, ComputedFn, ActionFn } from "./store";
 
 // Export store functionality (tree-shakeable)
-export { computed, action, select } from "./store";
+export { action, select } from "./store";
 
 // Export HMR utilities (development only)
 export {

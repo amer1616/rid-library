@@ -1,5 +1,5 @@
 import { TemplateResult } from "./template";
-import { state, effect } from "./state";
+import { state, effect } from "./reactive";
 
 type PropType = {
   type:
@@ -16,15 +16,17 @@ type PropType = {
 };
 
 export type PropTypes = Record<string, PropType>;
+export type ComponentOptions = { shadow?: boolean };
+
 type Props<P extends PropTypes> = {
   [K in keyof P]: P[K] extends PropType & { required: true }
-    ? PropTypeToValue<P[K]>
-    : PropTypeToValue<P[K]> | undefined;
+    ? PropTypeToTSType<P[K]>
+    : PropTypeToTSType<P[K]> | undefined;
 } & {
   children?: HTMLElement[];
 };
 
-type PropTypeToValue<T extends PropType> = T["type"] extends "string"
+export type PropTypeToTSType<T extends PropType> = T["type"] extends "string"
   ? string
   : T["type"] extends "number"
     ? number
