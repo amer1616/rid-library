@@ -1,4 +1,4 @@
-import { html, reactive, key } from "@rid/rid";
+import { html, state, key } from "@rid/rid";
 
 interface TodoItem {
   id: string;
@@ -14,11 +14,8 @@ interface TodoProps {
 
 let nextId = 1;
 
-export const Todo = (
-  props: Partial<TodoProps>,
-  children: HTMLElement[]
-) => {
-  const state = reactive({
+export const Todo = (props: Partial<TodoProps>, children: HTMLElement[]) => {
+  const state = state({
     todos:
       props.items?.map((item) => ({
         ...item,
@@ -75,7 +72,10 @@ export const Todo = (
         padding: 20px;
         border: 1px solid #ddd;
         border-radius: 8px;
-        font-family: system-ui, -apple-system, sans-serif;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
       }
 
       .todo-header {

@@ -1,4 +1,4 @@
-import { html, reactive, key } from "@rid/rid";
+import { html, state, key } from "@rid/rid";
 
 // Counter Button Component
 interface CounterButtonProps {
@@ -12,7 +12,7 @@ export const CounterButton = (props: Partial<CounterButtonProps>) => {
   const styles = {
     button: `
       padding: 8px 16px;
-      background: ${props.color || '#3498db'};
+      background: ${props.color || "#3498db"};
       color: white;
       border: none;
       border-radius: 4px;
@@ -22,12 +22,8 @@ export const CounterButton = (props: Partial<CounterButtonProps>) => {
   };
 
   return html`
-    <button 
-      style=${styles.button}
-      onclick=${props.onClick}
-    >
-      ${props.label || 'Click Me'}
-      ${props.children ? props.children : ''}
+    <button style=${styles.button} onclick=${props.onClick}>
+      ${props.label || "Click Me"} ${props.children ? props.children : ""}
     </button>
   `;
 };
@@ -47,7 +43,7 @@ export const counterButtonProps = {
   },
   children: {
     type: "children" as const,
-  }
+  },
 } as const;
 
 // Main Counter Component
@@ -61,14 +57,15 @@ export interface CounterProps {
 export const Counter = (props: Partial<CounterProps>) => {
   // Static styles
   const styles = {
-    container: "padding: 20px; max-width: 300px; margin: 0 auto; text-align: center;",
+    container:
+      "padding: 20px; max-width: 300px; margin: 0 auto; text-align: center;",
     header: "color: #2c3e50; margin-bottom: 20px;",
     count: "font-size: 24px; color: #34495e; margin: 20px 0;",
-    buttonsContainer: "display: flex; gap: 10px; justify-content: center;"
+    buttonsContainer: "display: flex; gap: 10px; justify-content: center;",
   };
 
   // Reactive state with props
-  const state = reactive({
+  const state = state({
     count: props.initialCount ?? 0,
   });
 
@@ -85,25 +82,30 @@ export const Counter = (props: Partial<CounterProps>) => {
   return html`
     <div style=${styles.container}>
       ${props.label ? html`<h2 style=${styles.header}>${props.label}</h2>` : ""}
-      
+
       <div style=${styles.count}>Count: ${state.count}</div>
-      
+
       <div style=${styles.buttonsContainer}>
-        ${key('dec-btn', html`
-          <rid-counter-button
-            color="#e74c3c"
-            label="Decrease"
-            onclick=${decrement}
-          ></rid-counter-button>
-        `)}
-        
-        ${key('inc-btn', html`
-          <rid-counter-button
-            color="#2ecc71"
-            label="Increase"
-            onclick=${increment}
-          ></rid-counter-button>
-        `)}
+        ${key(
+          "dec-btn",
+          html`
+            <rid-counter-button
+              color="#e74c3c"
+              label="Decrease"
+              onclick=${decrement}
+            ></rid-counter-button>
+          `
+        )}
+        ${key(
+          "inc-btn",
+          html`
+            <rid-counter-button
+              color="#2ecc71"
+              label="Increase"
+              onclick=${increment}
+            ></rid-counter-button>
+          `
+        )}
       </div>
 
       ${props.children ? props.children : ""}
@@ -129,5 +131,5 @@ export const counterProps = {
   },
   children: {
     type: "children" as const,
-  }
+  },
 } as const;

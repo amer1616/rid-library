@@ -1,4 +1,4 @@
-import { r as reactive, h as html, define } from "../../src/core";
+import { s as state, h as html, define } from "../../src/core";
 
 interface TodoItem {
   id: number;
@@ -10,7 +10,7 @@ const Todo = (
   props: { items?: TodoItem[]; title?: string },
   slot: Record<string, HTMLElement[]>
 ) => {
-  const state = reactive({
+  const state = state({
     items: props.items || [],
     newItemText: "",
   });

@@ -46,8 +46,8 @@ export const batch = (fn: () => void) => {
   }
 };
 
-export const reactive = <T extends object>(obj: T): T => {
-  // Skip if already reactive
+export const state = <T extends object>(obj: T): T => {
+  // Skip if already state
   if (isReactive(obj)) return obj as T;
 
   return new Proxy(obj, {
@@ -55,8 +55,8 @@ export const reactive = <T extends object>(obj: T): T => {
       const result = Reflect.get(target, key, receiver);
       track(target, key);
 
-      // Only make nested objects reactive when accessed
-      return result && typeof result === "object" ? reactive(result) : result;
+      // Only make nested objects state when accessed
+      return result && typeof result === "object" ? state(result) : result;
     },
     set(target, key, value, receiver) {
       const oldValue = Reflect.get(target, key, receiver);

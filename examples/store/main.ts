@@ -1,4 +1,4 @@
-import { r as reactive, h as html, define } from "../../src/core";
+import { s as state, h as html, define } from "../../src/core";
 import { createStore } from "../../src/core/store";
 import type { StoreInstance } from "../../src/core/store";
 
@@ -75,7 +75,7 @@ export const todoStore: StoreInstance<TodoState> = createStore<TodoState>({
 
 // Form component
 const TodoForm = () => {
-  const state = reactive({
+  const state = state({
     text: "",
   });
 

@@ -1,4 +1,4 @@
-import { r as reactive, h as html, define } from "../../src/core";
+import { s as state, h as html, define } from "../../src/core";
 import type { PropTypeToTSType } from "../../src/core";
 
 // Types
@@ -184,7 +184,7 @@ define("user-card", UserCard, { props: userCardProps });
 
 // Main App
 const App = () => {
-  const state = reactive({
+  const state = state({
     users: [
       { id: 1, name: "John Doe", email: "john@example.com" },
       { id: 2, name: "Jane Smith", email: "jane@example.com" },

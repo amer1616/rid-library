@@ -1,4 +1,4 @@
-import { r as reactive, h as html, define } from "../../src/core";
+import { s as state, h as html, define } from "../../src/core";
 import type { PropTypeToTSType } from "../../src/core";
 
 type Theme = "light" | "dark";
@@ -21,7 +21,7 @@ const cardProps = {
 type CardProps = PropTypeToTSType<typeof cardProps>;
 
 const Card = (props: CardProps, slot: Record<string, HTMLElement[]>) => {
-  const state = reactive({
+  const state = state({
     isExpanded: true,
   });
 
@@ -105,7 +105,9 @@ const Card = (props: CardProps, slot: Record<string, HTMLElement[]>) => {
         padding: 1rem;
         max-height: 0;
         overflow: hidden;
-        transition: max-height 0.3s ease, padding 0.3s ease;
+        transition:
+          max-height 0.3s ease,
+          padding 0.3s ease;
       }
 
       .card-content.expanded {

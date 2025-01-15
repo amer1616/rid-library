@@ -1,11 +1,11 @@
-import { reactive, html, define } from "@rid/rid";
+import { state, html, define } from "@rid/rid";
 
 interface CounterState {
   count: number;
 }
 
 const Counter = () => {
-  const state = reactive<CounterState>({
+  const state = state<CounterState>({
     count: 0,
   });
 

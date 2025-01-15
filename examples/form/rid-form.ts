@@ -1,4 +1,4 @@
-import { html, reactive } from "@rid/rid";
+import { html, state } from "@rid/rid";
 
 interface FormState {
   username: string;
@@ -11,7 +11,7 @@ interface FormState {
 type FormStateKey = keyof FormState;
 
 export const Form = () => {
-  const state = reactive<FormState>({
+  const state = state<FormState>({
     username: "",
     email: "",
     bio: "",

@@ -1,4 +1,4 @@
-import { reactive, computed, effect } from "./reactive";
+import { state, computed, effect } from "./state";
 
 // Store types
 export interface StoreInstance<T extends object> {
@@ -21,7 +21,7 @@ type ActionFn<T> = (state: T, ...args: any[]) => void;
 export function createStore<T extends object>(
   initialState: T
 ): StoreInstance<T> {
-  const state = reactive(initialState);
+  const state = state(initialState);
   const computedValues = new Map<string, ComputedFn<T, any>>();
   const computedCache: ComputedCache = new Map();
   const actions = new Map<string, ActionFn<T>>();

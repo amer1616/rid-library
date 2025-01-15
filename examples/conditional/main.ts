@@ -1,4 +1,4 @@
-import { r as reactive, h as html, define } from "../../src/core";
+import { s as state, h as html, define } from "../../src/core";
 
 interface TodoItem {
   id: number;
@@ -17,7 +17,7 @@ interface AppState {
 }
 
 // Create state outside component for demo purposes
-const state = reactive<AppState>({
+const state = state<AppState>({
   items: [],
   isLoading: true,
   error: null,
@@ -121,72 +121,74 @@ const TodoApp = () => {
       ${state.isLoading
         ? html`<div class="loading">Loading...</div>`
         : state.error
-        ? html`<div class="error">${state.error}</div>`
-        : html`
-            <div class="container">
-              <!-- Header with conditional user greeting -->
-              <header>
-                ${state.user
-                  ? html`<h1>Welcome, ${state.user.name}!</h1>`
-                  : html`<h1>Todo App</h1>`}
-              </header>
+          ? html`<div class="error">${state.error}</div>`
+          : html`
+              <div class="container">
+                <!-- Header with conditional user greeting -->
+                <header>
+                  ${state.user
+                    ? html`<h1>Welcome, ${state.user.name}!</h1>`
+                    : html`<h1>Todo App</h1>`}
+                </header>
 
-              <!-- Search and filters -->
-              <div class="controls">
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value=${state.searchText}
-                  oninput=${(e: Event) => {
-                    const target = e.target as HTMLInputElement;
-                    state.searchText = target.value;
+                <!-- Search and filters -->
+                <div class="controls">
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value=${state.searchText}
+                    oninput=${(e: Event) => {
+                      const target = e.target as HTMLInputElement;
+                      state.searchText = target.value;
+                    }}
+                  />
+                  <select
+                    onchange=${(e: Event) => {
+                      const target = e.target as HTMLSelectElement;
+                      state.filter = target.value as AppState["filter"];
+                    }}
+                    value=${state.filter}
+                  >
+                    <option value="all">All</option>
+                    <option value="active">Active</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+
+                <!-- Conditional list rendering -->
+                ${getFilteredItems().length === 0
+                  ? html`
+                      <div class="empty">
+                        ${state.searchText
+                          ? "No matching items"
+                          : "No items yet"}
+                      </div>
+                    `
+                  : html`
+                      <ul class="todo-list">
+                        ${getFilteredItems().map(renderItem)}
+                      </ul>
+                    `}
+
+                <!-- Add new item -->
+                <form
+                  onsubmit=${(e: Event) => {
+                    e.preventDefault();
+                    const form = e.target as HTMLFormElement;
+                    const input = form.elements.namedItem(
+                      "newItem"
+                    ) as HTMLInputElement;
+                    if (input.value.trim()) {
+                      addItem(input.value.trim());
+                      input.value = "";
+                    }
                   }}
-                />
-                <select
-                  onchange=${(e: Event) => {
-                    const target = e.target as HTMLSelectElement;
-                    state.filter = target.value as AppState["filter"];
-                  }}
-                  value=${state.filter}
                 >
-                  <option value="all">All</option>
-                  <option value="active">Active</option>
-                  <option value="completed">Completed</option>
-                </select>
+                  <input name="newItem" placeholder="Add new item..." />
+                  <button type="submit">Add</button>
+                </form>
               </div>
-
-              <!-- Conditional list rendering -->
-              ${getFilteredItems().length === 0
-                ? html`
-                    <div class="empty">
-                      ${state.searchText ? "No matching items" : "No items yet"}
-                    </div>
-                  `
-                : html`
-                    <ul class="todo-list">
-                      ${getFilteredItems().map(renderItem)}
-                    </ul>
-                  `}
-
-              <!-- Add new item -->
-              <form
-                onsubmit=${(e: Event) => {
-                  e.preventDefault();
-                  const form = e.target as HTMLFormElement;
-                  const input = form.elements.namedItem(
-                    "newItem"
-                  ) as HTMLInputElement;
-                  if (input.value.trim()) {
-                    addItem(input.value.trim());
-                    input.value = "";
-                  }
-                }}
-              >
-                <input name="newItem" placeholder="Add new item..." />
-                <button type="submit">Add</button>
-              </form>
-            </div>
-          `}
+            `}
     </div>
 
     <style>

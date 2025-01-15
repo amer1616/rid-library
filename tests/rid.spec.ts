@@ -1,8 +1,8 @@
-import { reactive, effect, html } from "@rid/index";
+import { state, effect, html } from "@rid/index";
 
 describe("RID Library Core Tests", () => {
-  it("should create a reactive object", () => {
-    const state = reactive({ count: 0 });
+  it("should create a state object", () => {
+    const state = state({ count: 0 });
     let value = 0;
 
     effect(() => {

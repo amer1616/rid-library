@@ -1,8 +1,15 @@
 import { TemplateResult } from "./template";
-import { reactive, effect } from "./reactive";
+import { state, effect } from "./state";
 
 type PropType = {
-  type: "string" | "number" | "boolean" | "array" | "object" | "function" | "children";
+  type:
+    | "string"
+    | "number"
+    | "boolean"
+    | "array"
+    | "object"
+    | "function"
+    | "children";
   required?: boolean;
   default?: any;
   validate?: (value: any) => boolean;
@@ -10,22 +17,28 @@ type PropType = {
 
 export type PropTypes = Record<string, PropType>;
 type Props<P extends PropTypes> = {
-    [K in keyof P]: P[K] extends PropType & { required: true } 
-        ? PropTypeToValue<P[K]> 
-        : PropTypeToValue<P[K]> | undefined
+  [K in keyof P]: P[K] extends PropType & { required: true }
+    ? PropTypeToValue<P[K]>
+    : PropTypeToValue<P[K]> | undefined;
 } & {
-    children?: HTMLElement[];
+  children?: HTMLElement[];
 };
 
-type PropTypeToValue<T extends PropType> = 
-    T['type'] extends 'string' ? string :
-    T['type'] extends 'number' ? number :
-    T['type'] extends 'boolean' ? boolean :
-    T['type'] extends 'array' ? any[] :
-    T['type'] extends 'object' ? object :
-    T['type'] extends 'function' ? Function :
-    T['type'] extends 'children' ? any :
-    never;
+type PropTypeToValue<T extends PropType> = T["type"] extends "string"
+  ? string
+  : T["type"] extends "number"
+    ? number
+    : T["type"] extends "boolean"
+      ? boolean
+      : T["type"] extends "array"
+        ? any[]
+        : T["type"] extends "object"
+          ? object
+          : T["type"] extends "function"
+            ? Function
+            : T["type"] extends "children"
+              ? any
+              : never;
 
 interface Options<P extends PropTypes> {
   props?: P;
@@ -45,8 +58,8 @@ export const define = <P extends PropTypes>(
     private cleanup?: () => void;
     private observer: MutationObserver;
 
-    private state = reactive({
-      props: {} as Props<P>
+    private state = state({
+      props: {} as Props<P>,
     });
 
     constructor() {
@@ -57,7 +70,11 @@ export const define = <P extends PropTypes>(
 
     connectedCallback() {
       this.initProps();
-      this.observer.observe(this, { childList: true, subtree: true, attributes: true });
+      this.observer.observe(this, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+      });
       this.updateChildren();
       this.setupReactivity();
     }
@@ -72,14 +89,18 @@ export const define = <P extends PropTypes>(
       Object.entries(propTypes).forEach(([name, type]) => {
         if (this.hasAttribute(name)) {
           this.updateProp(name, this.getAttribute(name));
-        } else if ('default' in type) {
+        } else if ("default" in type) {
           (this.state.props as any)[name] = type.default;
         }
       });
     }
 
     private updateChildren() {
-      if (propTypes && 'children' in propTypes && propTypes.children.type === 'children') {
+      if (
+        propTypes &&
+        "children" in propTypes &&
+        propTypes.children.type === "children"
+      ) {
         this.state.props.children = Array.from(this.children) as HTMLElement[];
       }
     }
@@ -99,7 +120,11 @@ export const define = <P extends PropTypes>(
       return Object.keys(propTypes);
     }
 
-    attributeChangedCallback(name: string, _: string | null, value: string | null) {
+    attributeChangedCallback(
+      name: string,
+      _: string | null,
+      value: string | null
+    ) {
       this.updateProp(name, value);
     }
 
@@ -109,12 +134,19 @@ export const define = <P extends PropTypes>(
 
       let parsed: any = value;
       switch (type.type) {
-        case 'number': parsed = value === null ? null : Number(value); break;
-        case 'boolean': parsed = value !== null; break;
-        case 'array':
-        case 'object':
-          try { parsed = value === null ? undefined : JSON.parse(value); }
-          catch { parsed = type.default; }
+        case "number":
+          parsed = value === null ? null : Number(value);
+          break;
+        case "boolean":
+          parsed = value !== null;
+          break;
+        case "array":
+        case "object":
+          try {
+            parsed = value === null ? undefined : JSON.parse(value);
+          } catch {
+            parsed = type.default;
+          }
           break;
       }
 
