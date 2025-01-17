@@ -3,13 +3,13 @@ export { html, key } from "./core/template";
 export { define } from "./core/component";
 
 // Export types
-export type {
+export {
   PropTypes,
   ComponentOptions,
   PropTypeToTSType,
-} from "./core/index";
+} from "./core";
 
-export type {
+export {
   TemplateResult,
   SupportedEvent,
   EventHandler,
