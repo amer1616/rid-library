@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { define } from "../src/rid";
+import { define } from "@rid/rid";
 import { Form } from "../examples/form/rid-form";
 
 describe("<rid-form> Component", () => {
